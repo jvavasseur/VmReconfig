@@ -1,8 +1,8 @@
-Clear
+Clear-Host
 Get-Date -Format "dddd MM/dd/yyyy HH:mm:ss"
 
 $env:PSModulePath = $env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique | Join-String -Property {$_} -Separator ";"
-Import-Module VmReconfig -Force;
+Import-Module VmReconfig -Force #-Verbose;
 
 $json = '
 {
@@ -15,28 +15,33 @@ $json = '
         , { "name": " toto ", "path": "  ", "url": "http://xxx.com" }
         , { "name": "Your Shortcut3.url", "path": "%ALLUSERSPROFILE%\\Desktop", "url": "http://xxx.com" }
     ]
-    , "lgpo": [
-        { "type": "User", "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "name": "Wallpaper", "value": "SZ:c:\\test.bmp" }
-        , { "type": "User", "path": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "name": "WallpaperStyle", "value": "SZ:0" }
+    , "localepolicies": [
+        { "name": "gpo1.txt", "type": "filE", "path": ""}
+        , { "name": "url.txt", "type": "link", "path": "", "url": "https://raw.githubusercontent.com/jvavasseur/UiPathAcademyRessources/master/Policies/policies.txt"}
+        , { "name": "rules.txt", "type": "list", "path": "", "rules": [
+            { "container": "User", "location": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "key": "Wallpaper", "value": "SZ:%PROGRAMDATA%\\UiPath\\Academy\\Downloads\\wallpaper.jpg" }
+            , { "container": "User", "location": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "key": "WallpaperStyle", "value": "SZ:0" }
+        ] }
     ]
 }'
 #        #{ "name": "Your Shortcut.url", "path": "$env:ALLUSERSPROFILE\\Desktop", "url": "http://xxx.com" }
 
 $env:DefaultFavoritePath = "%ALLUSERSPROFILE%\\Desktop"
 $env:DefaultShortcutPath = "%ALLUSERSPROFILE%\\Desktop"
-$env:DefaultDownloadfPath = "%PROGRAMDATA%\\UiPath\\Academy\\Downloads"
-$env:test = "*****--" 
+$env:DefaultDownloadPath = "%PROGRAMDATA%\\UiPath\\Academy\\Downloads"
+$env:DefaultPoliciesPath = "%PROGRAMDATA%\\UiPath\\Academy\\Policies"
+$env:LGPO = "%PROGRAMDATA%\\UiPath\\Academy\\Downloads\\lgpo\\LGPO.exe"
 
 $tab = "";
 $test = ConvertFrom-Json -InputObject $json -AsHashtable -NoEnumerate
-
+$test
 Write-Host "---------------------------" 
-$test.favorites | Add-Favorite
+#$test.favorites | Add-Favorite
 "+" * 50
-$test.downloads | Get-FileFromUrl
+#$test.downloads | Get-FileFromUrl
+$test.localepolicies | Import-LocalePolicies
+
 Write-Host "////" 
-$test.downloads 
-$test 
 exit 
 
 Write-Host "$tab  | Shortcuts"

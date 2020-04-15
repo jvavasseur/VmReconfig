@@ -9,12 +9,12 @@ function Get-FileFromUrl {
         # Parameter help description
         [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Hashtable] $download
         , [Parameter(Mandatory=$false)] [String] $tab = ""
-        , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadfPath
+        , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadPath
     )
     Begin {
         Write-Host "$tab  ◯ Download"
         $index = 0; $errorcount = 0;
-        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadfPath; }
+        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadPath; }
     }
     Process{
         Try{
