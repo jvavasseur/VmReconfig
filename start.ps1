@@ -9,5 +9,7 @@ Install-Module posh-git -Scope CurrentUser -Force
 Import-Module posh-git
 #Add-PoshGitToProfile -AllHosts
 if (Test-Path $scripts) { Remove-Item $scripts -Force -Recurse }
-git clone $repository $scripts
+git -C $scripts pull origin
+
+
 

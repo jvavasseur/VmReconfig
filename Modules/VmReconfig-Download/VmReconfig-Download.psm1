@@ -80,6 +80,7 @@ function Get-FileFromUrl {
 
             $replace = if ( $download.replace -eq $false) { $false } else { $true }
             $extract = if ( $download.extract -eq $true) { $true } else { $false }
+            $execute = if ( $download.execute -eq $true) { $true } else { $false }
 
             $file = Join-Path -Path $fullpath -ChildPath $name
 
@@ -120,6 +121,13 @@ function Get-FileFromUrl {
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
                     Write-Host "$tab  |    + File extracted to: $destination"
+                }
+
+                if ( $execute ) {
+                    $params = $download.parameters 
+                    Write-Host "$tab  |    - Execute command [parameters = $params]"
+                    $file
+                    Start-Process $file -ArgumentList $params -Wait
                 }
             }catch{
                 Write-Error $_;    

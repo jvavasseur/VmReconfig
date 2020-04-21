@@ -1,1 +1,26 @@
-
+{
+    "downloads": [
+        { "name": "lgpo.zip", path: "", url: "https://download.microsoft.com/download/8/5/C/85C25433-A1B0-4FFA-9429-7E023E7DA8D8/LGPO.zip", "replace": false, "extract": true }
+        , { "name": "wallpaper.jpg", pathx: "", "xxxx": "", "url": "https://i.ytimg.com/vi/DTX_wdydipM/maxresdefault.jpg" }
+        , { "name": "notapad++.exe", "url": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.5/npp.7.8.5.Installer.x64.exe", "replace": false, "execute": true, "parameters": "/S" }
+        , { "name": "officedeploymenttool.exe", "url": "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_12624-20320.exe", "replace": false, "execute": true, "parameters": "/extract:%PROGRAMDATA%\\UiPath\\Academy\\Downloads /quiet" }
+    ]
+    , "favorites": [
+        { "name": "Your Shortcut2.url", "path": "%ALLUSERSPROFILE%\\Desktop", "url": "http://xxx.com" }
+        , { "name": " toto ", "path": "  ", "url": "http://xxx.com" }
+        , { "name": "Your Shortcut3.url", "path": "%ALLUSERSPROFILE%\\Desktop", "url": "http://xxx.com" }
+    ]
+    , "localepolicies": [
+        { "name": "gpo1.txt", "type": "filE", "path": ""}
+        , { "name": "TimeZone-Alaska.txt", "type": "link", "path": "", "url": "https://raw.githubusercontent.com/jvavasseur/UiPathAcademyRessources/master/Policies/TimeZone-Alaska.txt"}
+        , { "name": "TimeZone-Myanmar.txt", "type": "link", "path": "", "url": "https://raw.githubusercontent.com/jvavasseur/UiPathAcademyRessources/master/Policies/TimeZone-Myanmar.txt"}
+        , { "name": "TimeZone-Paris.txt", "type": "link", "path": "", "url": "https://raw.githubusercontent.com/jvavasseur/UiPathAcademyRessources/master/Policies/TimeZone-Paris.txt"}
+        , { "name": "rules.txt", "type": "list", "path": "", "rules": [
+            { "container": "User", "location": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "key": "Wallpaper", "value": "SZ:%PROGRAMDATA%\\UiPath\\Academy\\Downloads\\wallpaper.jpg" }
+            , { "container": "User", "location": "Software\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "key": "WallpaperStyle", "value": "SZ:0" }
+            , { "container": "User", "location": "Software\\Policies\\Microsoft\\Internet Explorer\\Control Panel", "key": "HomePage", "value": "DWORD:1" }
+            , { "container": "User", "location": "Software\\Policies\\Microsoft\\Internet Explorer\\Main", "key": "Start Page", "value": "SZ:www.uipath.com"}
+            , { "container": "Machine", "location": "SYSTEM\\CurrentControlSet\\Control\\TimeZoneInformation", "key": "Haiti Standard Time", "value": "SZ:Afghanistan Standard Time"}
+        ] }
+    ]
+}
