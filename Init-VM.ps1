@@ -1,1 +1,2 @@
-{\rtf1}
+
+git fetch $repository $scripts
