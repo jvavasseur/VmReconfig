@@ -80,7 +80,6 @@ function Get-FileFromUrl {
 
             $replace = if ( $download.replace -eq $false) { $false } else { $true }
             $extract = if ( $download.extract -eq $true) { $true } else { $false }
-            $execute = if ( $download.execute -eq $true) { $true } else { $false }
 
             $file = Join-Path -Path $fullpath -ChildPath $name
 
@@ -116,16 +115,14 @@ function Get-FileFromUrl {
                     }
                     <#
                      $vol = Mount-DiskImage -ImagePath $iso -StorageType ISO -PassThru -NoDriveLetter | Get-Volume
+                     $vol = Mount-DiskImage -ImagePath $iso -StorageType ISO -PassThru | Get-Volume
                     ls -l "$($vol.Path)" | %{ Copy-Item -LiteralPath $_.fullname -Destination $dest -Recurse -Force}
                     Get-DiskImage -DevicePath $vol.path.trimend('\') -ea silentlycontinue  | Dismount-DiskImage
+                    mountvol $dest $vol.UniqueId
+                    https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_12624-20320.exe
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
                     Write-Host "$tab  |    + File extracted to: $destination"
-                }
-
-                if ( $execute ) {
-                    $command = @{ command = $file; parameters = $download.parameters}
-                    Start-ConfigCommand -Command $command -Wait $true -quiet: $true
                 }
             }catch{
                 Write-Error $_;    
@@ -141,65 +138,3 @@ function Get-FileFromUrl {
         Write-Host "$tab  * Download finished: $index $msg"; #⬤
     }
 }
-
-
-function Start-ConfigCommand {
-<#
-    Download File
-    .SYPNOSIS
-    ...
-#>
-    [CmdletBinding()]
-    Param (
-        # Parameter help description
-        [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Array] $command
-        , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadPath
-        , [Parameter(Mandatory=$false)] [switch] $wait
-        , [Parameter(Mandatory=$false)] [switch] $quiet = $false #= [switch]::Present
-    )
-    Begin {
-        $index = 0; $errorcount = 0;
-        if ( -not $quiet ) { write-host "$tab  # Execute" }
-        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadPath; }
-#        if ([string]::IsNullOrWhiteSpace($quiet)) { write-host "NULL" } else { write-host "ok $quiet" }
-    }
-    Process{
-        try {
-            $index++;
-            $name = $command.name
-            $file = $command.command
-            #$file = $command.command
-            if ([string]::IsNullOrWhiteSpace($file)) { $errorcount++; Write-Error "command name is missing"; return }
-            if ( -not $quiet ) { Write-Host "$tab  |  => Execute $index [$name]" } #↳
-            Write-Host "$tab  |    - Execute command [parameters = $params]"
-
-#write-host "params = $params"
-#write-host "command = $file"
-            $fullname = if ( [string]::IsNullOrWhiteSpace( [io.path]::GetDirectoryName($file) ) ) { 
-                write-host "$tab  |    - File not found, check default folder: $defaultpath"
-                Join-Path -Path ([System.Environment]::ExpandEnvironmentVariables($defaultpath)) -ChildPath $file
-            } else { $file }
-#            write-host " fullname = $fullname"
-            $workingdir = [io.path]::GetDirectoryName($fullname)
-#            write-host " working dir = $workingdir"
-            
-#            if ( Test-Path -Path $fullname -PathType Leaf ) { write-host "OK" } else { write-error "error"}
-#  $testobject_params = @{ object = $download; properties = @("name", "url"); any = $false }
-            $process_params = @{ FilePath = $fullname; NoNewWindow = $true; Wait = $true ; PassThru = $true ; WorkingDirectory = $workingdir }
-            if ([string]::IsNullOrWhiteSpace($command.parameters)) {} else { $process_params.Add("ArgumentList", $command.parameters) }
-            $process = Start-Process @process_params
-            Write-Host "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
-            Write-Host "$tab  |    - Command executed [exit code = ]"
-        } catch {
-            $errorcount++;
-            Throw $_;
-        }
-    }
-    End{
-        if ( -not $quiet ) {
-            [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Host "$tab  * Execute finished: $index $msg"; #⬤
-        }
-    }
-}
-    

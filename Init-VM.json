@@ -4,6 +4,8 @@
         , { "name": "wallpaper.jpg", pathx: "", "xxxx": "", "url": "https://i.ytimg.com/vi/DTX_wdydipM/maxresdefault.jpg" }
         , { "name": "notapad++.exe", "url": "https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.5/npp.7.8.5.Installer.x64.exe", "replace": false, "execute": true, "parameters": "/S" }
         , { "name": "officedeploymenttool.exe", "url": "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_12624-20320.exe", "replace": false, "execute": true, "parameters": "/extract:%PROGRAMDATA%\\UiPath\\Academy\\Downloads /quiet" }
+        , { "name": "office.xml", "url": "https://raw.githubusercontent.com/jvavasseur/UiPathAcademyRessources/master/Office/SetupOffice2019-Excel_en-us.xml", "replace": true }
+        , { "name": "UiPathStudioSetup.exe", "url": "http://download.uipath.com/UiPathStudioSetup.exe" }
     ]
     , "favorites": [
         { "name": "Your Shortcut2.url", "path": "%ALLUSERSPROFILE%\\Desktop", "url": "http://xxx.com" }
@@ -24,3 +26,6 @@
         ] }
     ]
 }
+
+
+
