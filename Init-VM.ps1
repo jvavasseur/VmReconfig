@@ -2,7 +2,7 @@ param(
     [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $files
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $urls
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $configs
-    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [bool] $pullorigin = $false
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $pullorigin = $false
 )
 
 $env:RootPath = "%ALLUSERSPROFILE%"
@@ -23,9 +23,11 @@ $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Se
 Import-Module posh-git -Force
 Import-Module VmReconfig -Force -Verbose;
 
-Write-Host "Git Pull Origin"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-#git -C $scripts pull origin
+if ( $pullorigin ) {
+    git -C $scripts pull origin
+    Write-Host "Git Pull Origin"
+}
 
 $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
 
@@ -54,9 +56,9 @@ $files | Foreach-Object {
 #    write-host $("x" * 100)
     if ( ( $null = $json ) ) {
         $params = $json.Downloads
-#        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
+        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
         $params = $json.Execute 
-#        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
+        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
     } else { write-host "XXXXXXXXXXXXXXXXXXXXXXXXXX" }
 }
 
