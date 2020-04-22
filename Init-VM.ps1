@@ -27,30 +27,31 @@ Write-Host "Git Pull Origin"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 #git -C $scripts pull origin
 
-
-
 $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
 
-$files = "xC:\ProgramData\UiPath\Academy\office-studio.json", "y"
+#$files = "xC:\ProgramData\UiPath\Academy\office-studio.json", "y"
 
 $config = [io.path]::ChangeExtension($PSCommandPath, 'json')
-$files = , $config + $files 
+
+$files = if ( $files.Count -gt 0){, $config + $files } else {$config} 
 
 $tab = ""
 $fileid = 0
 $files | Foreach-Object {
     $fileid++
     $filename = $PSItem
-    "-" * 50
+
+    Write-Host $("-" * 100)
     Write-Host "$($tab)Configuration File $fileid"
+    Write-Host "$tab  File: $filename"
 
     $json = $null
     if ( Test-Path -Path $filename -PathType Leaf ) {
-        write-host "$tab  Read File: $filename"
+        Write-Host "$tab  Read File"
         $json = Get-Content $filename | ConvertFrom-Json
     } else { write-error "file not found: $filename"; return } 
 
-    write-host $("x" * 100)
+#    write-host $("x" * 100)
     if ( ( $null = $json ) ) {
         $params = $json.Downloads
         if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
