@@ -21,7 +21,7 @@ $scripts = "C:\ProgramData\UiPath\Academy\Scripts"
 Write-Host "Import Modules"
 $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique ) -join ';'
 Import-Module posh-git -Force
-Import-Module VmReconfig -Force -Verbose;
+Import-Module VmReconfig -Force #-Verbose;
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ( $pullorigin ) {
