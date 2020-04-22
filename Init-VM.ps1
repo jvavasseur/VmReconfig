@@ -35,10 +35,7 @@ $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
 
 $config = [io.path]::ChangeExtension($PSCommandPath, 'json')
 
-$files.count
-$files
 $files = if ( $files.Count -gt 0){, $config + $files } else {$config} 
-$files.count
 
 $tab = ""
 $fileid = 0
@@ -59,9 +56,9 @@ $files | Foreach-Object {
 #    write-host $("x" * 100)
     if ( ( $null = $json ) ) {
         $params = $json.Downloads
-#        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
+        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
         $params = $json.Execute 
-#        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
+        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
     } else { write-host "XXXXXXXXXXXXXXXXXXXXXXXXXX" }
 }
 
