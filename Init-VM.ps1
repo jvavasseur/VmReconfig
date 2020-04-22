@@ -25,8 +25,8 @@ Import-Module VmReconfig -Force -Verbose;
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ( $pullorigin ) {
-    git -C $scripts pull origin
     Write-Host "Git Pull Origin"
+    & 'C:\Program Files\Git\bin\git.exe' -C $scripts pull origin
 }
 
 $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
