@@ -21,7 +21,7 @@ $scripts = "C:\ProgramData\UiPath\Academy\Scripts"
 Write-Host "Import Modules"
 $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique ) -join ';'
 Import-Module posh-git -Force
-Import-Module VmReconfig -Force #-Verbose;
+Import-Module VmReconfig -Force -Verbose;
 
 Write-Host "Git Pull Origin"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -54,9 +54,9 @@ $files | Foreach-Object {
 #    write-host $("x" * 100)
     if ( ( $null = $json ) ) {
         $params = $json.Downloads
-        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
+#        if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
         $params = $json.Execute 
-        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
+#        if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
     } else { write-host "XXXXXXXXXXXXXXXXXXXXXXXXXX" }
 }
 
