@@ -36,6 +36,7 @@ $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
 $config = [io.path]::ChangeExtension($PSCommandPath, 'json')
 
 $files.count
+$files
 $files = if ( $files.Count -gt 0){, $config + $files } else {$config} 
 $files.count
 
