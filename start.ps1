@@ -17,7 +17,9 @@ choco install git -y --params "GitOnlyOnPath"
 
 Write-Host "Pull repository"
 if (Test-Path $scripts) { Remove-Item $scripts -Force -Recurse }
-& 'C:\Program Files\Git\bin\git.exe' -C $scripts pull origin
+#& 'C:\Program Files\Git\bin\git.exe' -C $scripts pull origin
 
 & 'C:\Program Files\Git\bin\git.exe' clone $repository $scripts
 
+cd $scripts
+write-host ".\Init-VM.ps1 -pullorigin"

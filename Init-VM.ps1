@@ -21,7 +21,8 @@ $scripts = "C:\ProgramData\UiPath\Academy\Scripts"
 Write-Host "Import Modules"
 $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique ) -join ';'
 Import-Module posh-git -Force
-Import-Module VmReconfig -Force #-Verbose;
+Import-Module VmReconfig -Force -Verbose;
+#Install-Module PowerShellLogging
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ( $pullorigin ) {
@@ -31,6 +32,19 @@ if ( $pullorigin ) {
 
 $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
 
+#Test-LocalePolicies
+#Test-Test
+"-" * 10
+$PSScriptRoot
+
+Get-LocalePoliciesPath
+"-" * 10
+Set-LocalePoliciesPath "c"
+"-" * 10
+Get-LocalePoliciesPath
+"-" * 10
+pwd
+ exit
 #$files = "xC:\ProgramData\UiPath\Academy\office-studio.json", "y"
 
 $config = [io.path]::ChangeExtension($PSCommandPath, 'json')

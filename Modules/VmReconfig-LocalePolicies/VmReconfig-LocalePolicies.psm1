@@ -1,3 +1,38 @@
+[String]$LocalePoliciesFolder = "XXX init"
+function Get-LocalePoliciesPath{
+    [CmdletBinding()]
+    Param ()
+    Process{
+        try {
+            Get-Variable -Name $PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1] -Scope 1 -ValueOnly -ErrorAction Stop
+        } catch [System.Management.Automation.ItemNotFoundException] {
+            Throw "Cannot find a variable with the name $($PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1])"
+        }
+    }
+}
+function Set-LocalePoliciesPath {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [String]$Path
+    )
+    process {
+        $params = @{
+            Name = $PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1]
+            Value = $path
+            Option = 'constant'; Scope = 1; Passthru = $true
+        }            
+        (Set-Variable @params).value
+    }
+}
+function Test-LocalePolicies {
+    begin{}
+    process{
+        Write-Host " test local policies"
+        $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
+
+    }
+    end{} 
+}
 function Import-LocalePolicies {
     <#
         Load Locale GPO

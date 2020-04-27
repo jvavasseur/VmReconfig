@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-# RootModule = ''
+RootModule = 'VmReconfig.psm1'
 
 # Version number of this module.
 ModuleVersion = '1.0.0.0'
@@ -57,7 +57,7 @@ PowerShellVersion = '5.0.0'
 # RequiredAssemblies = @()
 
 # Script files (.ps1) that are run in the caller's environment prior to importing this module.
-# ScriptsToProcess = @()
+#ScriptsToProcess = @('test.ps1')
 
 # Type files (.ps1xml) to be loaded when importing this module
 # TypesToProcess = @()
@@ -66,10 +66,14 @@ PowerShellVersion = '5.0.0'
 # FormatsToProcess = @()
 
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
-NestedModules = @('VmReconfig-Download'
-               , 'VmReconfig-Shortcut'
-               , 'VmReconfig-LocalePolicies'
-               )
+NestedModules = @( # local .sourcing
+        'test.ps1'
+    ) + @( #nested modules
+        <#'VmReconfig-Download'
+        , 'VmReconfig-Shortcut'#>
+        , 'VmReconfig-LocalePolicies'
+        #, 'test.ps1'
+    )
 
 # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
 FunctionsToExport = '*'
@@ -78,7 +82,7 @@ FunctionsToExport = '*'
 CmdletsToExport = '*'
 
 # Variables to export from this module
-VariablesToExport = '*'
+VariablesToExport = @()
 
 # Aliases to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no aliases to export.
 AliasesToExport = '*'
