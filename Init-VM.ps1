@@ -1,8 +1,16 @@
 param(
-    [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $files
-    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $urls
-    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $configs
+    [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Files
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Urls
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Json
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $pullorigin = $false
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $WorkingDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $LogsDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DownloadsDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $PoliciesDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $TempDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DesktopDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $FavoritesDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $shortcutDirectory
 )
 
 $env:RootPath = "%ALLUSERSPROFILE%"

@@ -68,6 +68,7 @@ PowerShellVersion = '5.0.0'
 # Modules to import as nested modules of the module specified in RootModule/ModuleToProcess
 NestedModules = @( # local .sourcing
         'test.ps1'
+        , 'GetSet-Directories.ps1'
     ) + @( #nested modules
         <#'VmReconfig-Download'
         , 'VmReconfig-Shortcut'#>
