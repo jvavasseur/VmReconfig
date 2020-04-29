@@ -69,7 +69,7 @@ function Get-FileFromUrl {
 
             [String]$path = $download.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Host "$tab$(" "*2) |  ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Host "$tab$(" "*2) |   ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -147,7 +147,7 @@ function Get-FileFromUrl {
 
 function Start-ConfigCommand {
 <#
-    Download File
+    Execute command
     .SYPNOSIS
     ...
 #>
@@ -155,9 +155,10 @@ function Start-ConfigCommand {
     Param (
         # Parameter help description
         [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Array] $command
-        , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-DownloadsDirectory)
+        , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-ScriptsDirectory)
         , [Parameter(Mandatory=$false)] [switch] $wait
         , [Parameter(Mandatory=$false)] [switch] $quiet = $false #= [switch]::Present
+        , [Parameter(Mandatory=$false)] [String] $tab = ""
     )
     Begin {
         $index = 0; $errorcount = 0;
@@ -180,7 +181,7 @@ function Start-ConfigCommand {
             $fullname = if ( [string]::IsNullOrWhiteSpace( [io.path]::GetDirectoryName($file) ) ) { 
                 write-host "$tab  |    - File not found, check default folder: $defaultpath"
                 Join-Path -Path ([System.Environment]::ExpandEnvironmentVariables($defaultpath)) -ChildPath $file
-            } else { $file }
+            } else { [System.Environment]::ExpandEnvironmentVariables($file) }
 #            write-host " fullname = $fullname"
             $workingdir = [io.path]::GetDirectoryName($fullname)
 #            write-host " working dir = $workingdir"
@@ -189,6 +190,7 @@ function Start-ConfigCommand {
 #  $testobject_params = @{ object = $download; properties = @("name", "url"); any = $false }
             $process_params = @{ FilePath = $fullname; NoNewWindow = $true; Wait = $true ; PassThru = $true ; WorkingDirectory = $workingdir }
             if ([string]::IsNullOrWhiteSpace($command.parameters)) {} else { $process_params.Add("ArgumentList", $command.parameters) }
+            $process_params
             $process = Start-Process @process_params
             Write-Host "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
         } catch {

@@ -167,7 +167,7 @@ function Set-VmConfigFromFile
                 Write-Host "$tab$(" "*4)~ Read File"
                 $json = Get-Content $fullpath | ConvertFrom-Json
             } else { throw "Config file not found: $fullpath" } 
-        
+
             if ( ( $null = $json ) ) {
                 $params = $json.Downloads
                 if ( -not ( $null -eq $params )) { 
@@ -268,7 +268,7 @@ function Update-VmConfigFromJson
 
                 $params = $data.Execute 
                 if ( -not ( $null -eq $params )) { 
-                    Write-Host "$tab$(" "*4)Execute"
+                    $params | Start-ConfigCommand -tab "$tab$(" "*6)" -defaultpath (Get-ScriptsDirectory)
                 }
                 else { Write-Host "$tab$(" "*4)Execute: nothing to process"}
             } else { Write-Host "$tab$(" "*4)Nothing to process" }
@@ -331,8 +331,9 @@ function Set-VmConfigFromJson
     }
     Process{
         $count++
-        $shorttext = $json.SubString(0,[math]::min(30,$json.length) )
-        "$tab$(" "*4)JSON [$count] $shorttext..."
+#        $shorttext = $json.SubString(0,[math]::min(30,$json.length) )
+#        "$tab$(" "*4)JSON [$count] $shorttext..."
+        Update-VmConfigFromJson -Json $json
     }
     End{
         if ($count -eq 0) { Write-host "$tab$(" "*2)Nothing to process" }
