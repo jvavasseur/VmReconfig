@@ -45,29 +45,31 @@ function Get-FileFromUrl {
         # Parameter help description
         [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Array] $input
         , [Parameter(Mandatory=$false)] [String] $tab = ""
-        , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadPath
+        , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-DownloadsDirectory)
     )
     Begin {
-        Write-Host "$tab  # Download" #◯
+        Write-Host "$tab$(" "*0) # Downloads" #◯
         $index = 0; $errorcount = 0;
-        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadPath; }
+        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
     }
     Process{
         Try{
             $index++;
             $download = $PSItem
+
             $testobject_params = @{ object = $download; properties = @("name", "url"); any = $false }
             if ( -not ( Test-ObjectContainsProperties @testobject_params ) ) {
-                $errorcount++;Write-Error "Error with Download [$index]: format is invalid [$($download | ConvertTo-Json -Compress)] ; expected formet = { `"name`": `"file name`", `"path`": `"download folder`", `"url`": `"file url`" }"; 
+                $errorcount++;Write-Error "Error with Download [$index]: JSON format is invalid [$($download | ConvertTo-Json -Compress)] ; expected formet = { `"name`": `"file name`", `"path`": `"download folder`", `"url`": `"file url`" }"; 
                 return; 
             }
+
             [String]$name = $download.name.trim();
-            Write-Host "$tab  |  => Download $index [$name]" #↳
+            Write-Host "$tab$(" "*2) | => Download [$index]: $name" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Download [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $download.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Host "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Host "$tab$(" "*2) |  ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -88,10 +90,10 @@ function Get-FileFromUrl {
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Host "$tab  |    ! Skipping existing file [$file]. Use `"replace`": true"; 
+                    Write-Host "$tab$(" "*2) |    ! Skipping existing file [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Host "$tab  |    - Remove existing File"
+                        Write-Host "$tab$(" "*2) |    - Remove existing File"
                         Remove-Item $file -Force
                     }
                     [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -100,19 +102,18 @@ function Get-FileFromUrl {
                     $ProgressPreference = "SilentlyContinue"
                     Invoke-WebRequest -Uri $url -OutFile $file
                     $ProgressPreference = $progress
-                    Write-Host "$tab  |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
+                    Write-Host "$tab$(" "*2) |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
                 }
                 
                 if ( $extract) {
                     $destination = Join-Path -Path $fullpath -ChildPath $( [io.path]::GetFileNameWithoutExtension($file) )
                     if ( (Test-Path $destination -PathType Container)  -and ($replace -ne $true) )
                     {
-                        Write-Host "$tab  |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
+                        Write-Host "$tab$(" "*2) |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
                     } else {
                         if ( Test-Path $destination -PathType Container) {
-                            Write-Host "$tab  |    - Remove archive folder: $destination"
-                            Remove-Item -Path $destination -Force -Recurse
-        
+                            Write-Host "$tab$(" "*2) |    - Remove archive folder: $destination"
+                            Remove-Item -Path $destination -Force -Recurse        
                         }
                     }
                     <#
@@ -121,7 +122,7 @@ function Get-FileFromUrl {
                     Get-DiskImage -DevicePath $vol.path.trimend('\') -ea silentlycontinue  | Dismount-DiskImage
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
-                    Write-Host "$tab  |    + File extracted to: $destination"
+                    Write-Host "$tab$(" "*2) |    + File extracted to: $destination"
                 }
 
                 if ( $execute ) {
@@ -139,7 +140,7 @@ function Get-FileFromUrl {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Host "$tab  * Download finished: $index $msg"; #⬤
+        Write-Host "$tab$(" "*0) * Downloads finished: $index $msg"; #⬤
     }
 }
 
@@ -154,14 +155,14 @@ function Start-ConfigCommand {
     Param (
         # Parameter help description
         [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Array] $command
-        , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadPath
+        , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-DownloadsDirectory)
         , [Parameter(Mandatory=$false)] [switch] $wait
         , [Parameter(Mandatory=$false)] [switch] $quiet = $false #= [switch]::Present
     )
     Begin {
         $index = 0; $errorcount = 0;
         if ( -not $quiet ) { write-host "$tab  # Execute" }
-        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadPath; }
+        if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
 #        if ([string]::IsNullOrWhiteSpace($quiet)) { write-host "NULL" } else { write-host "ok $quiet" }
     }
     Process{

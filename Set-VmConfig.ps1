@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Files
-    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Urls
-    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string[]] $Json
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Urls
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Json
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $pullorigin = $false
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $WorkingDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $LogsDirectory
@@ -61,8 +61,15 @@ $directories = @{}
 Initialize-Directories @directories
 
 #----------------------------------------------------------------------------------------------------
-# Init
+# Start VM Config
 #----------------------------------------------------------------------------------------------------
-$files | Set-VmConfigFromFile
-$urls | Set-VmConfigFromUrl
-$json | Set-VmConfigFromJson
+Start-VmConfig -Files $Files -Urls $Urls -Json $json
+<#
+$files.count
+$urls.count
+$json.count
+if ( $null -eq $json ) {"xxxx"}
+$files | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | %{ $_ }
+$urls | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | %{ $_ }
+$json | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | %{ $_ }
+#>

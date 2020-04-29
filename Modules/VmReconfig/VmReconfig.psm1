@@ -57,7 +57,7 @@ function Initialize-Directories
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DesktopDirectory
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $FavoritesDirectory
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $shortcutsDirectory
-        , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $tab = ""
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
         )
     Begin{}
     Process{
@@ -91,7 +91,7 @@ function Initialize-Directories
 
             #region Custom Directories
             Init-CustomVariableDirectory -Name "LogS" -Value $LogsDirectory -tab $tab
-            Init-CustomVariableDirectory -Name "Download" -Value $DownloadDirectory -tab $tab
+            Init-CustomVariableDirectory -Name "Downloads" -Value $DownloadsDirectory -tab $tab
             Init-CustomVariableDirectory -Name "Policies" -Value $PoliciesDirectory -tab $tab
             Init-CustomVariableDirectory -Name "Temp" -Value $TempDirectory -tab $tab
             Init-CustomVariableDirectory -Name "Scripts" -Value $ScriptsDirectory -tab $tab
@@ -121,22 +121,164 @@ function Test-Directories
     }
 }
 
+function Start-VmConfig
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Files
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Urls
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Json
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
+    )
+    Begin{
+        Write-Host "$($tab)Start processing Files"
+        $count = 0
+    }
+    Process{
+        Write-Host $("-" * 100)
+        $Files | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromFile
+        Write-Host $("-" * 100)
+        $Urls | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromUrl
+        Write-Host $("-" * 100)
+        $Json | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromJson
+
+    }
+    End{}
+}
+
 function Set-VmConfigFromFile
 {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $File
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Host "Start processing Files"
+        Write-Host "$($tab)Start processing Files"
         $count = 0
     }
     Process{
-        $count++
-        "[$count] $File"
+        try {
+            $count++
+            Write-Host "$($tab)$(" "*2)File [$count]: $File"
+
+            $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
+            if ( Test-Path -Path $fullpath -PathType Leaf ) {
+                Write-Host "$tab$(" "*4)~ Read File"
+                $json = Get-Content $fullpath | ConvertFrom-Json
+            } else { throw "Config file not found: $fullpath" } 
+        
+            if ( ( $null = $json ) ) {
+                $params = $json.Downloads
+                if ( -not ( $null -eq $params )) { 
+                    Write-Host "$tab$(" "*4)Downloads"
+                    #$params | Get-FileFromUrl 
+                } 
+                else { Write-Host "$tab$(" "*4)! Downloads: nothing to process"}
+
+                $params = $json.Favorites 
+                if ( -not ( $null -eq $params )) { 
+                    Write-Host "$tab$(" "*4)Favorites"
+                    #$params | Start-ConfigCommand 
+                }
+                else { Write-Host "$tab$(" "*4)! Favorites: nothing to process"}
+
+                $params = $json.Execute 
+                if ( -not ( $null -eq $params )) { 
+                    Write-Host "$tab$(" "*4)Execute"
+                    #$params | Start-ConfigCommand 
+                }
+                else { Write-Host "$tab$(" "*4)Execute: nothing to process"}
+            }
+        }
+        catch {
+            throw
+        }
     }
     End{
-        Write-Host "End processing Files"
+        Write-Host "$($tab)End processing Files"
+    }
+}
+
+function Update-VmConfigFromFile
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $File
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
+    )
+    Begin{
+    }
+    Process{
+        try {
+            $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
+            if ( Test-Path -Path $fullpath -PathType Leaf ) {
+                Write-Host "$tab$(" "*4) ~ Read File..."
+                $json = Get-Content -Path $fullpath -Raw #| ConvertFrom-Json
+            } else { throw "Config file not found: $fullpath" } 
+        
+            if ( -not ( [string]::IsNullOrWhiteSpace($json) ) ) {
+                Update-VmConfigFromJson -Json $json
+            } else { Write-Host "$tab$(" "*4)! Empty File..."}
+        }
+        catch {
+            throw
+        }
+    }
+    End{
+        #Write-Host "$($tab)End processing Files"
+    }
+}
+
+function Update-VmConfigFromJson
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $Json
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
+    )
+    Begin{
+    }
+    Process{
+        try {
+            $shorttext = $json.Replace("`r", " ").Replace("`n", " ").Replace("    ", " ").Replace("  ", " ").SubString(0,[math]::min(50,$json.length) )
+            Write-Host "$tab$(" "*4) ~ Validate JSON data: $shorttext..."    
+            $data = $json | ConvertFrom-Json
+
+            if ( ( $null = $data ) ) {
+                Write-Host "$tab$(" "*4)Start Processing Data"
+
+                $params = $data.Downloads
+                if ( -not ( $null -eq $params )) { 
+                    $params | Get-FileFromUrl -tab "$tab$(" "*6)" -defaultpath (Get-DownloadsDirectory)
+                } 
+                else { Write-Host "$tab$(" "*4)! Downloads: nothing to process"}
+
+                $params = $data.Favorites 
+                if ( -not ( $null -eq $params )) { 
+                    $params | Add-Favorite -tab "$tab$(" "*6)" -defaultpath (Get-FavoritesDirectory)
+                }
+                else { Write-Host "$tab$(" "*4)! Favorites: nothing to process"}
+
+                $params = $data.Shortcuts 
+                if ( -not ( $null -eq $params )) { 
+                    $params | Add-Shortcut -tab "$tab$(" "*6)" -defaultpath (Get-ShortcutsDirectory)
+                }
+                else { Write-Host "$tab$(" "*4)! Shorcuts: nothing to process"}
+
+                $params = $data.Execute 
+                if ( -not ( $null -eq $params )) { 
+                    Write-Host "$tab$(" "*4)Execute"
+                }
+                else { Write-Host "$tab$(" "*4)Execute: nothing to process"}
+            } else { Write-Host "$tab$(" "*4)Nothing to process" }
+        }
+        catch {
+            throw
+        }
+    }
+    End{
+        #Write-Host "$($tab)End processing Files"
     }
 }
 
@@ -145,17 +287,34 @@ function Set-VmConfigFromUrl
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $Url
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Host "Start processing Files"
+        Write-Host "$($tab)Start processing URL"
         $count = 0
     }
     Process{
-        $count++
-        "[$count] $Url"
+        try {
+            $count++
+            Write-Host "$tab$(" "*2)URL [$count] $Url"
+            $filename = "$([guid]::NewGuid()).json"
+            $fullpath = [io.path]::Combine( (Get-TempDirectory), $filename)
+            Write-Host "$tab$(" "*4)Download to temp file: $fullpath"
+
+            [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+            $startdate = (get-date)
+            $progress = $ProgressPreference
+            $ProgressPreference = "SilentlyContinue"
+            Invoke-WebRequest -Uri $url -OutFile $fullpath
+            $ProgressPreference = $progress
+            Write-Host "$tab$(" "*4) ~ File downloaded [$(New-TimeSpan -Start $startdate -End (get-date))]"
+
+            Update-VmConfigFromFile -File $fullpath 
+}
+        catch { throw }
     }
     End{
-        Write-Host "End processing Files"
+        Write-Host "$($tab)End processing URL"
     }
 }
 
@@ -164,17 +323,20 @@ function Set-VmConfigFromJson
     [CmdletBinding()]
     param(
         [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $Json
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Host "Start processing Files"
+        Write-Host "$($tab)Start processing JSON"
         $count = 0
     }
     Process{
         $count++
-        "[$count] $Json"
+        $shorttext = $json.SubString(0,[math]::min(30,$json.length) )
+        "$tab$(" "*4)JSON [$count] $shorttext..."
     }
     End{
-        Write-Host "End processing Files"
+        if ($count -eq 0) { Write-host "$tab$(" "*2)Nothing to process" }
+        Write-Host "$($tab)End processing JSON"
     }
 }
 

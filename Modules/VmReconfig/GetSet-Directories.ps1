@@ -113,7 +113,7 @@ function Set-LogsDirectory {
 #----------------------------------------------------------------------------------------------------
 # Download directory
 #----------------------------------------------------------------------------------------------------
-function Get-DownloadDirectory {
+function Get-DownloadsDirectory {
     [CmdletBinding()]
     Param ( [Parameter(Mandatory=$false)] [String]$Scope = "Script" )
     Process{
@@ -124,7 +124,7 @@ function Get-DownloadDirectory {
         } catch{ Throw }
     }
 }
-function Set-DownloadDirectory {
+function Set-DownloadsDirectory {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)] [String]$Path

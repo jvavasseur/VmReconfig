@@ -70,8 +70,9 @@ NestedModules = @( # local .sourcing
         'test.ps1'
         , 'GetSet-Directories.ps1'
     ) + @( #nested modules
-        <#'VmReconfig-Download'
-        , 'VmReconfig-Shortcut'#>
+        'VmReconfig-Downloads'
+        'VmReconfig-Favorites'
+        , 'VmReconfig-Shortcuts'
         , 'VmReconfig-LocalePolicies'
         #, 'test.ps1'
     )
