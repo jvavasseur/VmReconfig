@@ -1,5 +1,5 @@
 ﻿$path = "C:\ProgramData\UiPath\Academy"
-$scripts = "C:\ProgramData\UiPath\Academy\Scripts"
+$scripts = "C:\ProgramData\UiPath\Academy\VmReconfig"
 $repository = "https://github.com/jvavasseur/VmReconfig.git"
 
 Write-Host "Add modules"
