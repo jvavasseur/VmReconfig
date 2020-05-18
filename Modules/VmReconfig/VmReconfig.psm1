@@ -34,14 +34,14 @@ function Test-ObjectContainsProperties {
         $count = 0;
     }
     Process{
-#Write-Ouput "name = $($object.name)"
-##Write-Ouput $(Get-Member -InputObject $object -MemberType Properties)
+#Write-Output "name = $($object.name)"
+##Write-Output $(Get-Member -InputObject $object -MemberType Properties)
         ForEach($property in $properties)
         {
-#Write-Ouput "property = $property"
+#Write-Output "property = $property"
             if (Get-Member -InputObject $object  -Name $property -MemberType Properties) 
             {
-#Write-Ouput "property = $property OK"
+#Write-Output "property = $property OK"
                 $count++;
                 if ($any -eq $true) { return $true }
             }
@@ -68,16 +68,16 @@ function New-FolderPath {
         , [Parameter(Mandatory=$false)] [Switch] $quiet
     )
     Begin {
-        if ($quiet) { Write-Ouput "$tab Create folder path" }
+        if ($quiet) { Write-Output "$tab Create folder path" }
     }
     Process {
         $Path = [System.Environment]::ExpandEnvironmentVariables($Path)
-        if ( Test-Path -Path $Path -PathType Container ) { Write-Ouput "$tab = Folder exists: $Path" }
+        if ( Test-Path -Path $Path -PathType Container ) { Write-Output "$tab = Folder exists: $Path" }
         else {
             $path.Split("\") | ForEach-Object { 
                 $fullpath = if( [io.path]::IsPathRooted($_) ) { Join-Path $_ -ChildPath "" } else { (New-Item $fullpath -Name $_ -ItemType Directory -Force ).FullName } 
             }
-            Write-Ouput "$tab + Folder created: $path"
+            Write-Output "$tab + Folder created: $path"
         }
     }
     End{}
@@ -137,13 +137,13 @@ function Initialize-Directories
             If ( -not(Test-Path -Path $fullpath -isValid ) ) { Throw "Working Directory is invalid: $path" }
             #if ( [string]::IsNullOrWhiteSpace( [IO.Path]::GetPathRoot($fullpath) )) {
             if ( -not [IO.Path]::IsPathRooted($fullpath) ) {
-                    Write-Ouput "$tab ! Not Rooted path set to Parent Directory: $ParentDirectory"
+                    Write-Output "$tab ! Not Rooted path set to Parent Directory: $ParentDirectory"
                 $fullpath = [IO.Path]::GetFullPath( [IO.Path]::Combine($ParentDirectory, $fullpath) )
-                Write-Ouput "$tab ~ Resulting Full Path: $fullpath"
+                Write-Output "$tab ~ Resulting Full Path: $fullpath"
             }
             New-FolderPath -Path $fullpath -tab $tab
             $path = Set-WorkingDirectory -Path $fullpath 
-            Write-Ouput "$tab + Working Directory set: $path"
+            Write-Output "$tab + Working Directory set: $path"
             #endregion Working Directory
 
             #region Custom Directories
@@ -198,15 +198,15 @@ function Start-VmConfig
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Ouput "$($tab)Start processing Files"
+        Write-Output "$($tab)Start processing Files"
         $count = 0
     }
     Process{
-        Write-Ouput $("-" * 100)
+        Write-Output $("-" * 100)
         $Files | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromFile
-        Write-Ouput $("-" * 100)
+        Write-Output $("-" * 100)
         $Urls | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromUrl
-        Write-Ouput $("-" * 100)
+        Write-Output $("-" * 100)
         $Json | Where-Object { -not ([string]::IsNullOrWhiteSpace($_)) } | Set-VmConfigFromJson
 
     }
@@ -222,25 +222,25 @@ function End-VmConfig
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
         )
     Begin{
-        Write-Ouput "$($tab)Start Post processing "
+        Write-Output "$($tab)Start Post processing "
         $count = 0
     }
     Process{
         if ($UpdateLocalePolicies)
         {
-            Write-Ouput "$($tab) ~ Reload Locale Policies"
+            Write-Output "$($tab) ~ Reload Locale Policies"
             #Invoke-GPUpdate -Force
             Start-Process "gpupdate" -ArgumentList "/force" -Wait
-        } else { Write-Ouput "$($tab) ! Locale Policies not reloaded (use [UpdateLocalePolicies]) " }
+        } else { Write-Output "$($tab) ! Locale Policies not reloaded (use [UpdateLocalePolicies]) " }
         
         if ($UpdateDesktop)
         {
-            Write-Ouput "$($tab) ~ Reload Desktop"
+            Write-Output "$($tab) ~ Reload Desktop"
             Start-Process "RUNDLL32.EXE" -ArgumentList "USER32.DLL,UpdatePerUserSystemParameters 1, True" -Wait
-        } else { Write-Ouput "$($tab) ! Desktop not reloaded (use [UpdateDesktop])" }
+        } else { Write-Output "$($tab) ! Desktop not reloaded (use [UpdateDesktop])" }
     }
     End {
-        Write-Ouput "$($tab)End Post processing "
+        Write-Output "$($tab)End Post processing "
     }
 }
             
@@ -252,42 +252,42 @@ function Set-VmConfigFromFile
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Ouput "$($tab)Start processing Files"
+        Write-Output "$($tab)Start processing Files"
         $count = 0
     }
     Process{
         try {
             $count++
-            Write-Ouput "$($tab)$(" "*2)File [$count]: $File"
+            Write-Output "$($tab)$(" "*2)File [$count]: $File"
             Update-VmConfigFromFile -File $File 
 
 <#            $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
             if ( Test-Path -Path $fullpath -PathType Leaf ) {
-                Write-Ouput "$tab$(" "*4)~ Read File"
+                Write-Output "$tab$(" "*4)~ Read File"
                 $json = Get-Content $fullpath | ConvertFrom-Json
             } else { throw "Config file not found: $fullpath" } 
 
             if ( ( $null = $json ) ) {
                 $params = $json.Downloads
                 if ( -not ( $null -eq $params )) { 
-                    Write-Ouput "$tab$(" "*4)Downloads"
+                    Write-Output "$tab$(" "*4)Downloads"
                     #$params | Get-FileFromUrl 
                 } 
-                else { Write-Ouput "$tab$(" "*4)! Downloads: nothing to process"}
+                else { Write-Output "$tab$(" "*4)! Downloads: nothing to process"}
 
                 $params = $json.Favorites 
                 if ( -not ( $null -eq $params )) { 
-                    Write-Ouput "$tab$(" "*4)Favorites"
+                    Write-Output "$tab$(" "*4)Favorites"
                     #$params | Start-ConfigCommand 
                 }
-                else { Write-Ouput "$tab$(" "*4)! Favorites: nothing to process"}
+                else { Write-Output "$tab$(" "*4)! Favorites: nothing to process"}
 
                 $params = $json.Execute 
                 if ( -not ( $null -eq $params )) { 
-                    Write-Ouput "$tab$(" "*4)Execute"
+                    Write-Output "$tab$(" "*4)Execute"
                     #$params | Start-ConfigCommand 
                 }
-                else { Write-Ouput "$tab$(" "*4)Execute: nothing to process"}
+                else { Write-Output "$tab$(" "*4)Execute: nothing to process"}
             }#>
         }
         catch {
@@ -295,7 +295,7 @@ function Set-VmConfigFromFile
         }
     }
     End{
-        Write-Ouput "$($tab)End processing Files"
+        Write-Output "$($tab)End processing Files"
     }
 }
 
@@ -312,20 +312,20 @@ function Update-VmConfigFromFile
         try {
             $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
             if ( Test-Path -Path $fullpath -PathType Leaf ) {
-                Write-Ouput "$tab$(" "*4) ~ Read File..."
+                Write-Output "$tab$(" "*4) ~ Read File..."
                 $json = Get-Content -Path $fullpath -Raw #| ConvertFrom-Json
             } else { throw "Config file not found: $fullpath" } 
         
             if ( -not ( [string]::IsNullOrWhiteSpace($json) ) ) {
                 Update-VmConfigFromJson -Json $json
-            } else { Write-Ouput "$tab$(" "*4)! Empty File..."}
+            } else { Write-Output "$tab$(" "*4)! Empty File..."}
         }
         catch {
             throw
         }
     }
     End{
-        #Write-Ouput "$($tab)End processing Files"
+        #Write-Output "$($tab)End processing Files"
     }
 }
 
@@ -341,49 +341,49 @@ function Update-VmConfigFromJson
     Process{
         try {
             $shorttext = $json.Replace("`r", " ").Replace("`n", " ").Replace("    ", " ").Replace("  ", " ").SubString(0,[math]::min(50,$json.length) )
-            Write-Ouput "$tab$(" "*4) ~ Validate JSON data: $shorttext..."    
+            Write-Output "$tab$(" "*4) ~ Validate JSON data: $shorttext..."    
             $data = $json | ConvertFrom-Json
 
             if ( ( $null = $data ) ) {
-                Write-Ouput "$tab$(" "*4)Start Processing Data"
+                Write-Output "$tab$(" "*4)Start Processing Data"
 
                 $params = $data.Downloads
                 if ( -not ( $null -eq $params )) { 
                     $params | Get-FileFromUrl -tab "$tab$(" "*6)" -defaultpath (Get-DownloadsDirectory)
                 } 
-                else { Write-Ouput "$tab$(" "*4)! Downloads: nothing to process"}
+                else { Write-Output "$tab$(" "*4)! Downloads: nothing to process"}
 
                 $params = $data.Favorites 
                 if ( -not ( $null -eq $params )) { 
                     $params | Add-Favorite -tab "$tab$(" "*6)" -defaultpath (Get-FavoritesDirectory)
                 }
-                else { Write-Ouput "$tab$(" "*4)! Favorites: nothing to process"}
+                else { Write-Output "$tab$(" "*4)! Favorites: nothing to process"}
 
                 $params = $data.Shortcuts 
                 if ( -not ( $null -eq $params )) { 
                     $params | Add-Shortcut -tab "$tab$(" "*6)" -defaultpath (Get-ShortcutsDirectory)
                 }
-                else { Write-Ouput "$tab$(" "*4)! Shorcuts: nothing to process"}
+                else { Write-Output "$tab$(" "*4)! Shorcuts: nothing to process"}
 
                 $params = $data.Policies 
                 if ( -not ( $null -eq $params )) { 
                     $params | Update-Policies -tab "$tab$(" "*6)" -defaultpath (Get-ScriptsDirectory)
                 }
-                else { Write-Ouput "$tab$(" "*4)Policies: nothing to process"}
+                else { Write-Output "$tab$(" "*4)Policies: nothing to process"}
 
                 $params = $data.Execute 
                 if ( -not ( $null -eq $params )) { 
                     $params | Start-ConfigCommand -tab "$tab$(" "*6)" -defaultpath (Get-ScriptsDirectory)
                 }
-                else { Write-Ouput "$tab$(" "*4)Execute: nothing to process"}
-            } else { Write-Ouput "$tab$(" "*4)Nothing to process" }
+                else { Write-Output "$tab$(" "*4)Execute: nothing to process"}
+            } else { Write-Output "$tab$(" "*4)Nothing to process" }
         }
         catch {
             throw
         }
     }
     End{
-        #Write-Ouput "$($tab)End processing Files"
+        #Write-Output "$($tab)End processing Files"
     }
 }
 
@@ -395,16 +395,16 @@ function Set-VmConfigFromUrl
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Ouput "$($tab)Start processing URL"
+        Write-Output "$($tab)Start processing URL"
         $count = 0
     }
     Process{
         try {
             $count++
-            Write-Ouput "$tab$(" "*2)URL [$count] $Url"
+            Write-Output "$tab$(" "*2)URL [$count] $Url"
             $filename = "$([guid]::NewGuid()).json"
             $fullpath = [io.path]::Combine( (Get-TempDirectory), $filename)
-            Write-Ouput "$tab$(" "*4)Download to temp file: $fullpath"
+            Write-Output "$tab$(" "*4)Download to temp file: $fullpath"
 
             [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
             $startdate = (get-date)
@@ -412,14 +412,14 @@ function Set-VmConfigFromUrl
             $ProgressPreference = "SilentlyContinue"
             Invoke-WebRequest -Uri $url -OutFile $fullpath
             $ProgressPreference = $progress
-            Write-Ouput "$tab$(" "*4) ~ File downloaded [$(New-TimeSpan -Start $startdate -End (get-date))]"
+            Write-Output "$tab$(" "*4) ~ File downloaded [$(New-TimeSpan -Start $startdate -End (get-date))]"
 
             Update-VmConfigFromFile -File $fullpath 
 }
         catch { throw }
     }
     End{
-        Write-Ouput "$($tab)End processing URL"
+        Write-Output "$($tab)End processing URL"
     }
 }
 
@@ -431,7 +431,7 @@ function Set-VmConfigFromJson
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
     )
     Begin{
-        Write-Ouput "$($tab)Start processing JSON"
+        Write-Output "$($tab)Start processing JSON"
         $count = 0
     }
     Process{
@@ -441,8 +441,8 @@ function Set-VmConfigFromJson
         Update-VmConfigFromJson -Json $json
     }
     End{
-        if ($count -eq 0) { Write-Ouput "$tab$(" "*2)Nothing to process" }
-        Write-Ouput "$($tab)End processing JSON"
+        if ($count -eq 0) { Write-Output "$tab$(" "*2)Nothing to process" }
+        Write-Output "$($tab)End processing JSON"
     }
 }
 

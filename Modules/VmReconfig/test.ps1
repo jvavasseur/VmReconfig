@@ -1,7 +1,7 @@
 function Test-Test {
     begin{}
     process{
-        Write-Ouput " test "
+        Write-Output " test "
         $env:DefaultDownloadPath, $env:DefaultPoliciesPath | New-FolderPath
         test-LocalePolicies
     }

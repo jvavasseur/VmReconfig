@@ -29,23 +29,23 @@ function Init-CustomVariableDirectory {
     process {
         $Name = (Get-Culture).TextInfo.ToTitleCase($Name).Trim()
         $path = $value
-        Write-Ouput "$($tab)Set [$name] Directory: [$value]"
+        Write-Output "$($tab)Set [$name] Directory: [$value]"
         If (([string]::IsNullOrWhiteSpace($value))) { 
-            Write-Ouput "$tab ! Missing [$name] Directory set to Working Directory: $((Get-WorkingDirectory))"
+            Write-Output "$tab ! Missing [$name] Directory set to Working Directory: $((Get-WorkingDirectory))"
             $fullpath = [IO.Path]::GetFullPath( [IO.Path]::Combine( (Get-WorkingDirectory), $name) )
-            Write-Ouput "$tab ~ Resulting Full Path: $fullpath"
+            Write-Output "$tab ~ Resulting Full Path: $fullpath"
         } else {
             $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
             If ( -not(Test-Path -Path $fullpath -isValid ) ) { Throw "$name Directory is invalid: $path" }
             if ( -not [IO.Path]::IsPathRooted($fullpath) ) {
-                    Write-Ouput "$tab ! Not Rooted path set relative to Working Directory: $(Get-WorkingDirectory)"
+                    Write-Output "$tab ! Not Rooted path set relative to Working Directory: $(Get-WorkingDirectory)"
                 $fullpath = [IO.Path]::GetFullPath( [IO.Path]::Combine( (Get-WorkingDirectory), $fullpath) )
-                Write-Ouput "$tab ~ Resulting Full Path: $fullpath"
+                Write-Output "$tab ~ Resulting Full Path: $fullpath"
             }
         }
         New-FolderPath -Path $fullpath -tab $tab
         $path = Set-CustomVariable -Name "$($name)Directory" -Value $fullpath 
-        Write-Ouput "$tab + [$Name] Directory set: $path"
+        Write-Output "$tab + [$Name] Directory set: $path"
     }
 }
 

@@ -48,7 +48,7 @@ $env:LGPO = "%PROGRAMDATA%\\UiPath\\Academy\\Downloads\\lgpo\\LGPO.exe"
 $tab = "";
 $test = ConvertFrom-Json -InputObject $json #-AsHashtable -NoEnumerate
 
-Write-Ouput "--------------------------- →" 
+Write-Output "--------------------------- →" 
 #$test.favorites | Add-Favorite
 "+" * 50
 $test.downloads | Get-FileFromUrl
@@ -69,14 +69,14 @@ function Add-Folders {
         , [Parameter(Mandatory=$false)] [string] $path = $env:RootPath
     )
     Begin {
-        Write-Ouput "$tab ◯ Folder"
+        Write-Output "$tab ◯ Folder"
         $tab += "  "
         $id = 0
     }
     Process{
         $_.GetType().fullname
         $id++
-        Write-Ouput "[$id] $($_.name)"
+        Write-Output "[$id] $($_.name)"
     }
     End{
     }
@@ -84,16 +84,16 @@ function Add-Folders {
 
 #$test.downloads | Add-Folders
 
-Write-Ouput "////" 
+Write-Output "////" 
 exit 
 
-Write-Ouput "$tab  | Shortcuts"
+Write-Output "$tab  | Shortcuts"
 $index = 0;
 $test.favorites | Foreach-Object {
     $index++;
     $name = $_.name.trim();
     $path = $_.path.trim();
-    Write-Ouput "$tab | | Shortcut $index [$name]"
+    Write-Output "$tab | | Shortcut $index [$name]"
     $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
     $url = $_.url.trim()
     if ( Test-Path $fullpath -PathType Container)
@@ -101,17 +101,17 @@ $test.favorites | Foreach-Object {
         $file = Join-Path -Path $fullpath -ChildPath $name
         if ( Test-Path $file -PathType Leaf)
         {
-            Write-Ouput "$tab |    - Remove existing shortcut"
+            Write-Output "$tab |    - Remove existing shortcut"
             Remove-Item $file
         }
         $Shell = New-Object -ComObject ("WScript.Shell")
         $Favorite = $Shell.CreateShortcut($file)
         $Favorite.TargetPath = $url;
         $Favorite.Save()
-        Write-Ouput "$tab |    + Shortcut created [$name]: $fullpath "
+        Write-Output "$tab |    + Shortcut created [$name]: $fullpath "
     }else { Write-Error "Shortcut error [$name] in: path not found [$path]"}
 }
-Write-Ouput "QQQQ"
+Write-Output "QQQQ"
 $test.favorites | Add-Shortcuts
 $test.favorites[0].GetType() 
 <#
@@ -121,8 +121,8 @@ $test = ConvertFrom-Json $json -NoEnumerate
 #$test | Where-Object { $_.key -eq "Key" }
 
 $test | ForEach-Object {
-    Write-Ouput $_
-    Write-Ouput "----"
+    Write-Output $_
+    Write-Output "----"
 }
 
 [CmdletBinding()]

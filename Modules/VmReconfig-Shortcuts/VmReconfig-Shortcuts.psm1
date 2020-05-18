@@ -12,7 +12,7 @@ function Add-Shortcut {
         , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-ShorcutsDirectory)
     )
     Begin {
-        Write-Ouput "$tab$(" "*0) # Shorcuts" #◯
+        Write-Output "$tab$(" "*0) # Shorcuts" #◯
         $index = 0; $errorcount = 0;
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-ShorcutsDirectory); }
     }
@@ -28,12 +28,12 @@ function Add-Shortcut {
             }
 
             [String]$name = $Shorcut.name.trim();
-            Write-Ouput "$tab$(" "*2) | => Shorcut $index [$name]" #↳
+            Write-Output "$tab$(" "*2) | => Shorcut $index [$name]" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Shortcut [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $Shorcut.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Ouput "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Output "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -50,15 +50,15 @@ function Add-Shortcut {
             $file = Join-Path -Path $fullpath -ChildPath $name   
             $file = if ( [io.path]::GetExtension($file) -ne ".lnk" ) { "$($file).lnk"} else { $file }
 
-            Write-Ouput "$tab$(" "*2) |    ~ Resulting Shorcut file: [$file]"
+            Write-Output "$tab$(" "*2) |    ~ Resulting Shorcut file: [$file]"
 
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Ouput "$tab$(" "*2) |    ! Skipping existing Shorcut [$file]. Use `"replace`": true"; 
+                    Write-Output "$tab$(" "*2) |    ! Skipping existing Shorcut [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Ouput "$tab$(" "*2) |    - Remove existing Shorcut"
+                        Write-Output "$tab$(" "*2) |    - Remove existing Shorcut"
                         Remove-Item $file -Force
                     }
                     try{
@@ -71,11 +71,11 @@ function Add-Shortcut {
                         $object.IconLocation = "$target, 0";
 
                         $object.Save()
-                        Write-Ouput "$tab$(" "*2) |    + Shorcut created: $file "
+                        Write-Output "$tab$(" "*2) |    + Shorcut created: $file "
                     }catch{
                         Write-Error $_.Exception;    
                     }
-                    #Write-Ouput "$tab |    + Shorcut created: $file"
+                    #Write-Output "$tab |    + Shorcut created: $file"
                 }                    
             }catch{
                 Write-Error $_;    
@@ -88,7 +88,7 @@ function Add-Shortcut {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Ouput "$tab$(" "*0) * Shorcuts finished: $index $msg"; #⬤
+        Write-Output "$tab$(" "*0) * Shorcuts finished: $index $msg"; #⬤
     }
 }
     
@@ -106,7 +106,7 @@ function Add-Shortcut {
             , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultFavoritePath
         )
         Begin {
-            Write-Ouput "$tab  ◯ Favorites"
+            Write-Output "$tab  ◯ Favorites"
             $index = 0; $errorcount = 0;
             if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultFavoritePath; }
             #$defaultpath = [System.Environment]::ExpandEnvironmentVariables($defaultpath);
@@ -115,15 +115,15 @@ function Add-Shortcut {
             Try{
                 $script:defaultdownloadfolder;
                 $env:test
-                Write-Ouput "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                Write-Output "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                 $index++;
                 [String]$name = $favorite.name.trim();
-                Write-Ouput "$tab  |  ↳ Favorite $index [$name]"
+                Write-Output "$tab  |  ↳ Favorite $index [$name]"
                 if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Favorite [$index]: name is invalid [$name]"; return; }
                 if ( -not ($name.EndsWith('.url'))){ $name += '.url'}
                 [String]$path = $favorite.path.trim();
                 if ([string]::IsNullOrWhiteSpace($path)) { 
-                    Write-Ouput "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
+                    Write-Output "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
                     $path = $defaultpath; 
                 }
                 $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
@@ -135,7 +135,7 @@ function Add-Shortcut {
                     $file = Join-Path -Path $fullpath -ChildPath $name
                     if ( Test-Path $file -PathType Leaf)
                     {
-                        Write-Ouput "$tab  |    - Remove existing Favorite"
+                        Write-Output "$tab  |    - Remove existing Favorite"
                         Remove-Item $file
                     }
                     try{
@@ -143,7 +143,7 @@ function Add-Shortcut {
                         $object = $shell.CreateShortcut($file)
                         $object.TargetPath = $url;
                         $object.Save()
-                        Write-Ouput "$tab  |    + Favorite created: $file "
+                        Write-Output "$tab  |    + Favorite created: $file "
                     }catch{
                         Write-Error $_.Exception;    
                     }
@@ -155,7 +155,7 @@ function Add-Shortcut {
         }
         End{
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Ouput "$tab  ⬤ Favorites created: $index $msg";
+            Write-Output "$tab  ⬤ Favorites created: $index $msg";
         }
     }
     #>

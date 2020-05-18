@@ -16,12 +16,12 @@ function Test-ObjectContainsProperties {
         $count = 0;
     }
     Process{
-        #Write-Ouput "name = $($object.name)"
+        #Write-Output "name = $($object.name)"
         ForEach($property in $properties)
         {
             if (Get-Member -InputObject $object  -Name $property -MemberType Properties) 
             {
-                #Write-Ouput "property = $property OK"
+                #Write-Output "property = $property OK"
                 $count++;
                 if ($any -eq $true) { return $true }
             }
@@ -48,7 +48,7 @@ function Get-FileFromUrl {
         , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-DownloadsDirectory)
     )
     Begin {
-        Write-Ouput "$tab$(" "*0) # Downloads" #◯
+        Write-Output "$tab$(" "*0) # Downloads" #◯
         $index = 0; $errorcount = 0;
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
     }
@@ -64,12 +64,12 @@ function Get-FileFromUrl {
             }
 
             [String]$name = $download.name.trim();
-            Write-Ouput "$tab$(" "*2) | => Download [$index]: $name" #↳
+            Write-Output "$tab$(" "*2) | => Download [$index]: $name" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Download [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $download.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Ouput "$tab$(" "*2) |   ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Output "$tab$(" "*2) |   ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -90,10 +90,10 @@ function Get-FileFromUrl {
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Ouput "$tab$(" "*2) |    ! Skipping existing file [$file]. Use `"replace`": true"; 
+                    Write-Output "$tab$(" "*2) |    ! Skipping existing file [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Ouput "$tab$(" "*2) |    - Remove existing File"
+                        Write-Output "$tab$(" "*2) |    - Remove existing File"
                         Remove-Item $file -Force
                     }
                     [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -102,17 +102,17 @@ function Get-FileFromUrl {
                     $ProgressPreference = "SilentlyContinue"
                     Invoke-WebRequest -Uri $url -OutFile $file
                     $ProgressPreference = $progress
-                    Write-Ouput "$tab$(" "*2) |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
+                    Write-Output "$tab$(" "*2) |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
                 }
                 
                 if ( $extract) {
                     $destination = Join-Path -Path $fullpath -ChildPath $( [io.path]::GetFileNameWithoutExtension($file) )
                     if ( (Test-Path $destination -PathType Container)  -and ($replace -ne $true) )
                     {
-                        Write-Ouput "$tab$(" "*2) |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
+                        Write-Output "$tab$(" "*2) |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
                     } else {
                         if ( Test-Path $destination -PathType Container) {
-                            Write-Ouput "$tab$(" "*2) |    - Remove archive folder: $destination"
+                            Write-Output "$tab$(" "*2) |    - Remove archive folder: $destination"
                             Remove-Item -Path $destination -Force -Recurse        
                         }
                     }
@@ -122,7 +122,7 @@ function Get-FileFromUrl {
                     Get-DiskImage -DevicePath $vol.path.trimend('\') -ea silentlycontinue  | Dismount-DiskImage
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
-                    Write-Ouput "$tab$(" "*2) |    + File extracted to: $destination"
+                    Write-Output "$tab$(" "*2) |    + File extracted to: $destination"
                 }
 
                 if ( $execute ) {
@@ -140,7 +140,7 @@ function Get-FileFromUrl {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Ouput "$tab$(" "*0) * Downloads finished: $index $msg"; #⬤
+        Write-Output "$tab$(" "*0) * Downloads finished: $index $msg"; #⬤
     }
 }
 
@@ -162,9 +162,9 @@ function Start-ConfigCommand {
     )
     Begin {
         $index = 0; $errorcount = 0;
-        if ( -not $quiet ) { Write-Ouput "$tab  # Execute" }
+        if ( -not $quiet ) { Write-Output "$tab  # Execute" }
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
-#        if ([string]::IsNullOrWhiteSpace($quiet)) { Write-Ouput "NULL" } else { Write-Ouput "ok $quiet" }
+#        if ([string]::IsNullOrWhiteSpace($quiet)) { Write-Output "NULL" } else { Write-Output "ok $quiet" }
     }
     Process{
         try {
@@ -173,26 +173,26 @@ function Start-ConfigCommand {
             $file = $command.command
             #$file = $command.command
             if ([string]::IsNullOrWhiteSpace($file)) { $errorcount++; Write-Error "command name is missing"; return }
-            if ( -not $quiet ) { Write-Ouput "$tab  |  => Execute $index [$name]" } #↳
-            Write-Ouput "$tab  |    - Execute command [parameters = $params]"
+            if ( -not $quiet ) { Write-Output "$tab  |  => Execute $index [$name]" } #↳
+            Write-Output "$tab  |    - Execute command [parameters = $params]"
 
-#Write-Ouput "params = $params"
-#Write-Ouput "command = $file"
+#Write-Output "params = $params"
+#Write-Output "command = $file"
             $fullname = if ( [string]::IsNullOrWhiteSpace( [io.path]::GetDirectoryName($file) ) ) { 
-                Write-Ouput "$tab  |    - File not found, check default folder: $defaultpath"
+                Write-Output "$tab  |    - File not found, check default folder: $defaultpath"
                 Join-Path -Path ([System.Environment]::ExpandEnvironmentVariables($defaultpath)) -ChildPath $file
             } else { [System.Environment]::ExpandEnvironmentVariables($file) }
-#            Write-Ouput " fullname = $fullname"
+#            Write-Output " fullname = $fullname"
             $workingdir = [io.path]::GetDirectoryName($fullname)
-#            Write-Ouput " working dir = $workingdir"
+#            Write-Output " working dir = $workingdir"
             
-#            if ( Test-Path -Path $fullname -PathType Leaf ) { Write-Ouput "OK" } else { write-error "error"}
+#            if ( Test-Path -Path $fullname -PathType Leaf ) { Write-Output "OK" } else { write-error "error"}
 #  $testobject_params = @{ object = $download; properties = @("name", "url"); any = $false }
             $process_params = @{ FilePath = $fullname; NoNewWindow = $true; Wait = $true ; PassThru = $true ; WorkingDirectory = $workingdir }
             if ([string]::IsNullOrWhiteSpace($command.parameters)) {} else { $process_params.Add("ArgumentList", $command.parameters) }
             $process_params
             $process = Start-Process @process_params
-            Write-Ouput "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
+            Write-Output "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
         } catch {
             $errorcount++;
             Throw $_;
@@ -201,7 +201,7 @@ function Start-ConfigCommand {
     End{
         if ( -not $quiet ) {
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Ouput "$tab  * Execute finished: $index $msg"; #⬤
+            Write-Output "$tab  * Execute finished: $index $msg"; #⬤
         }
     }
 }

@@ -15,12 +15,12 @@ function Test-ObjectContainsProperties {
         $count = 0;
     }
     Process{
-        #Write-Ouput "name = $($object.name)"
+        #Write-Output "name = $($object.name)"
         ForEach($property in $properties)
         {
             if (Get-Member -InputObject $object  -Name $property -MemberType Properties) 
             {
-                #Write-Ouput "property = $property OK"
+                #Write-Output "property = $property OK"
                 $count++;
                 if ($any -eq $true) { return $true }
             }
@@ -47,7 +47,7 @@ function Get-FileFromUrl {
         , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultDownloadPath
     )
     Begin {
-        Write-Ouput "$tab  # Download" #◯
+        Write-Output "$tab  # Download" #◯
         $index = 0; $errorcount = 0;
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultDownloadPath; }
     }
@@ -61,12 +61,12 @@ function Get-FileFromUrl {
                 return; 
             }
             [String]$name = $download.name.trim();
-            Write-Ouput "$tab  |  => Download $index [$name]" #↳
+            Write-Output "$tab  |  => Download $index [$name]" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Download [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $download.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Ouput "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Output "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -86,10 +86,10 @@ function Get-FileFromUrl {
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Ouput "$tab  |    ! Skipping existing file [$file]. Use `"replace`": true"; 
+                    Write-Output "$tab  |    ! Skipping existing file [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Ouput "$tab  |    - Remove existing File"
+                        Write-Output "$tab  |    - Remove existing File"
                         Remove-Item $file -Force
                     }
                     [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -98,17 +98,17 @@ function Get-FileFromUrl {
                     $ProgressPreference = "SilentlyContinue"
                     Invoke-WebRequest -Uri $url -OutFile $file
                     $ProgressPreference = $progress
-                    Write-Ouput "$tab  |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
+                    Write-Output "$tab  |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
                 }
                 
                 if ( $extract) {
                     $destination = Join-Path -Path $fullpath -ChildPath $( [io.path]::GetFileNameWithoutExtension($file) )
                     if ( (Test-Path $destination -PathType Container)  -and ($replace -ne $true) )
                     {
-                        Write-Ouput "$tab  |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
+                        Write-Output "$tab  |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
                     } else {
                         if ( Test-Path $destination -PathType Container) {
-                            Write-Ouput "$tab  |    - Remove archive folder: $destination"
+                            Write-Output "$tab  |    - Remove archive folder: $destination"
                             Remove-Item -Path $destination -Force -Recurse
         
                         }
@@ -122,7 +122,7 @@ function Get-FileFromUrl {
                     https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_12624-20320.exe
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
-                    Write-Ouput "$tab  |    + File extracted to: $destination"
+                    Write-Output "$tab  |    + File extracted to: $destination"
                 }
             }catch{
                 Write-Error $_;    
@@ -135,6 +135,6 @@ function Get-FileFromUrl {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Ouput "$tab  * Download finished: $index $msg"; #⬤
+        Write-Output "$tab  * Download finished: $index $msg"; #⬤
     }
 }
