@@ -31,14 +31,14 @@ Get-Date -Format "dddd MM/dd/yyyy HH:mm:ss"
 # Repository
 #----------------------------------------------------------------------------------------------------
 if ( $pullorigin ) {
-    Write-Host "Git Pull Origin"
+    Write-Ouput "Git Pull Origin"
     & 'C:\Program Files\Git\bin\git.exe' -C $PSScriptRoot pull origin
 }
 
 #----------------------------------------------------------------------------------------------------
 # Load Modules
 #----------------------------------------------------------------------------------------------------
-Write-Host "Import Modules"
+Write-Ouput "Import Modules"
 $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique ) -join ';'
 Import-Module posh-git -Force
 Import-Module VmReconfig -Force -Verbose;

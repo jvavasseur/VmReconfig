@@ -12,7 +12,7 @@ function Add-Favorite {
             , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-FavoritesDirectory)
         )
         Begin {
-            Write-Host "$tab$(" "*0) # Favorites" #◯
+            Write-Ouput "$tab$(" "*0) # Favorites" #◯
             $index = 0; $errorcount = 0;
             if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-FavoritesDirectory); }
         }
@@ -28,12 +28,12 @@ function Add-Favorite {
                 }
 
                 [String]$name = $favorite.name.trim();
-                Write-Host "$tab$(" "*2) | => Favorite $index [$name]" #↳
+                Write-Ouput "$tab$(" "*2) | => Favorite $index [$name]" #↳
                 if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Favorite [$index]: name is invalid [$name]"; return; }
     
                 [String]$path = $favorite.path;
                 if ([string]::IsNullOrWhiteSpace($path)) { 
-                    Write-Host "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
+                    Write-Ouput "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
                     $path = $defaultpath.Trim(); 
                 } else { $path = $path.Trim(); }
     
@@ -50,15 +50,15 @@ function Add-Favorite {
                 $file = Join-Path -Path $fullpath -ChildPath $name   
                 $file = if ( [io.path]::GetExtension($file) -ne ".url" ) { "$($file).url"} else { $file }
 
-                Write-Host "$tab$(" "*2) |    ~ Resulting Favorite file: [$file]"
+                Write-Ouput "$tab$(" "*2) |    ~ Resulting Favorite file: [$file]"
 
                 try{
                     if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                     {
-                        Write-Host "$tab$(" "*2) |    ! Skipping existing Favorite [$file]. Use `"replace`": true"; 
+                        Write-Ouput "$tab$(" "*2) |    ! Skipping existing Favorite [$file]. Use `"replace`": true"; 
                     } else {
                         if ( Test-Path $file -PathType Leaf) {
-                            Write-Host "$tab$(" "*2) |    - Remove existing Favorite"
+                            Write-Ouput "$tab$(" "*2) |    - Remove existing Favorite"
                             Remove-Item $file -Force
                         }
                         try{
@@ -66,11 +66,11 @@ function Add-Favorite {
                             $object = $shell.CreateShortcut($file)
                             $object.TargetPath = $url;
                             $object.Save()
-                            Write-Host "$tab$(" "*2) |    + Favorite created: $file "
+                            Write-Ouput "$tab$(" "*2) |    + Favorite created: $file "
                         }catch{
                             Write-Error $_.Exception;    
                         }
-                        #Write-Host "$tab |    + Favorite created: $file"
+                        #Write-Ouput "$tab |    + Favorite created: $file"
                     }                    
                 }catch{
                     Write-Error $_;    
@@ -83,7 +83,7 @@ function Add-Favorite {
         }
         End{
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Host "$tab$(" "*0) * Favorites finished: $index $msg"; #⬤
+            Write-Ouput "$tab$(" "*0) * Favorites finished: $index $msg"; #⬤
         }
     }
     

@@ -16,12 +16,12 @@ function Test-ObjectContainsProperties {
         $count = 0;
     }
     Process{
-        #Write-Host "name = $($object.name)"
+        #Write-Ouput "name = $($object.name)"
         ForEach($property in $properties)
         {
             if (Get-Member -InputObject $object  -Name $property -MemberType Properties) 
             {
-                #write-host "property = $property OK"
+                #Write-Ouput "property = $property OK"
                 $count++;
                 if ($any -eq $true) { return $true }
             }
@@ -48,7 +48,7 @@ function Get-FileFromUrl {
         , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-DownloadsDirectory)
     )
     Begin {
-        Write-Host "$tab$(" "*0) # Downloads" #◯
+        Write-Ouput "$tab$(" "*0) # Downloads" #◯
         $index = 0; $errorcount = 0;
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
     }
@@ -64,12 +64,12 @@ function Get-FileFromUrl {
             }
 
             [String]$name = $download.name.trim();
-            Write-Host "$tab$(" "*2) | => Download [$index]: $name" #↳
+            Write-Ouput "$tab$(" "*2) | => Download [$index]: $name" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Download [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $download.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Host "$tab$(" "*2) |   ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Ouput "$tab$(" "*2) |   ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -90,10 +90,10 @@ function Get-FileFromUrl {
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Host "$tab$(" "*2) |    ! Skipping existing file [$file]. Use `"replace`": true"; 
+                    Write-Ouput "$tab$(" "*2) |    ! Skipping existing file [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Host "$tab$(" "*2) |    - Remove existing File"
+                        Write-Ouput "$tab$(" "*2) |    - Remove existing File"
                         Remove-Item $file -Force
                     }
                     [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
@@ -102,17 +102,17 @@ function Get-FileFromUrl {
                     $ProgressPreference = "SilentlyContinue"
                     Invoke-WebRequest -Uri $url -OutFile $file
                     $ProgressPreference = $progress
-                    Write-Host "$tab$(" "*2) |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
+                    Write-Ouput "$tab$(" "*2) |    + File downloaded: $file [$(New-TimeSpan -Start $startdate -End (get-date))]"
                 }
                 
                 if ( $extract) {
                     $destination = Join-Path -Path $fullpath -ChildPath $( [io.path]::GetFileNameWithoutExtension($file) )
                     if ( (Test-Path $destination -PathType Container)  -and ($replace -ne $true) )
                     {
-                        Write-Host "$tab$(" "*2) |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
+                        Write-Ouput "$tab$(" "*2) |    ! Skipping existing archive folder [$file]. Use `"replace`": true"; 
                     } else {
                         if ( Test-Path $destination -PathType Container) {
-                            Write-Host "$tab$(" "*2) |    - Remove archive folder: $destination"
+                            Write-Ouput "$tab$(" "*2) |    - Remove archive folder: $destination"
                             Remove-Item -Path $destination -Force -Recurse        
                         }
                     }
@@ -122,7 +122,7 @@ function Get-FileFromUrl {
                     Get-DiskImage -DevicePath $vol.path.trimend('\') -ea silentlycontinue  | Dismount-DiskImage
                     #>
                     Expand-Archive -Path $file -DestinationPath $destination -Force
-                    Write-Host "$tab$(" "*2) |    + File extracted to: $destination"
+                    Write-Ouput "$tab$(" "*2) |    + File extracted to: $destination"
                 }
 
                 if ( $execute ) {
@@ -140,7 +140,7 @@ function Get-FileFromUrl {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Host "$tab$(" "*0) * Downloads finished: $index $msg"; #⬤
+        Write-Ouput "$tab$(" "*0) * Downloads finished: $index $msg"; #⬤
     }
 }
 
@@ -162,9 +162,9 @@ function Start-ConfigCommand {
     )
     Begin {
         $index = 0; $errorcount = 0;
-        if ( -not $quiet ) { write-host "$tab  # Execute" }
+        if ( -not $quiet ) { Write-Ouput "$tab  # Execute" }
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-DownloadsDirectory); }
-#        if ([string]::IsNullOrWhiteSpace($quiet)) { write-host "NULL" } else { write-host "ok $quiet" }
+#        if ([string]::IsNullOrWhiteSpace($quiet)) { Write-Ouput "NULL" } else { Write-Ouput "ok $quiet" }
     }
     Process{
         try {
@@ -173,26 +173,26 @@ function Start-ConfigCommand {
             $file = $command.command
             #$file = $command.command
             if ([string]::IsNullOrWhiteSpace($file)) { $errorcount++; Write-Error "command name is missing"; return }
-            if ( -not $quiet ) { Write-Host "$tab  |  => Execute $index [$name]" } #↳
-            Write-Host "$tab  |    - Execute command [parameters = $params]"
+            if ( -not $quiet ) { Write-Ouput "$tab  |  => Execute $index [$name]" } #↳
+            Write-Ouput "$tab  |    - Execute command [parameters = $params]"
 
-#write-host "params = $params"
-#write-host "command = $file"
+#Write-Ouput "params = $params"
+#Write-Ouput "command = $file"
             $fullname = if ( [string]::IsNullOrWhiteSpace( [io.path]::GetDirectoryName($file) ) ) { 
-                write-host "$tab  |    - File not found, check default folder: $defaultpath"
+                Write-Ouput "$tab  |    - File not found, check default folder: $defaultpath"
                 Join-Path -Path ([System.Environment]::ExpandEnvironmentVariables($defaultpath)) -ChildPath $file
             } else { [System.Environment]::ExpandEnvironmentVariables($file) }
-#            write-host " fullname = $fullname"
+#            Write-Ouput " fullname = $fullname"
             $workingdir = [io.path]::GetDirectoryName($fullname)
-#            write-host " working dir = $workingdir"
+#            Write-Ouput " working dir = $workingdir"
             
-#            if ( Test-Path -Path $fullname -PathType Leaf ) { write-host "OK" } else { write-error "error"}
+#            if ( Test-Path -Path $fullname -PathType Leaf ) { Write-Ouput "OK" } else { write-error "error"}
 #  $testobject_params = @{ object = $download; properties = @("name", "url"); any = $false }
             $process_params = @{ FilePath = $fullname; NoNewWindow = $true; Wait = $true ; PassThru = $true ; WorkingDirectory = $workingdir }
             if ([string]::IsNullOrWhiteSpace($command.parameters)) {} else { $process_params.Add("ArgumentList", $command.parameters) }
             $process_params
             $process = Start-Process @process_params
-            Write-Host "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
+            Write-Ouput "$tab  |    - Command executed [exit code = $($process.ExitCode)]"
         } catch {
             $errorcount++;
             Throw $_;
@@ -201,7 +201,7 @@ function Start-ConfigCommand {
     End{
         if ( -not $quiet ) {
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Host "$tab  * Execute finished: $index $msg"; #⬤
+            Write-Ouput "$tab  * Execute finished: $index $msg"; #⬤
         }
     }
 }

@@ -12,7 +12,7 @@ function Add-Shortcut {
         , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-ShorcutsDirectory)
     )
     Begin {
-        Write-Host "$tab$(" "*0) # Shorcuts" #◯
+        Write-Ouput "$tab$(" "*0) # Shorcuts" #◯
         $index = 0; $errorcount = 0;
         if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-ShorcutsDirectory); }
     }
@@ -28,12 +28,12 @@ function Add-Shortcut {
             }
 
             [String]$name = $Shorcut.name.trim();
-            Write-Host "$tab$(" "*2) | => Shorcut $index [$name]" #↳
+            Write-Ouput "$tab$(" "*2) | => Shorcut $index [$name]" #↳
             if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Shortcut [$index]: name is invalid [$name]"; return; }
 
             [String]$path = $Shorcut.path;
             if ([string]::IsNullOrWhiteSpace($path)) { 
-                Write-Host "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
+                Write-Ouput "$tab$(" "*2) |    ~ Empty path replaced by Default path: [$defaultpath]"
                 $path = $defaultpath.Trim(); 
             } else { $path = $path.Trim(); }
 
@@ -50,15 +50,15 @@ function Add-Shortcut {
             $file = Join-Path -Path $fullpath -ChildPath $name   
             $file = if ( [io.path]::GetExtension($file) -ne ".lnk" ) { "$($file).lnk"} else { $file }
 
-            Write-Host "$tab$(" "*2) |    ~ Resulting Shorcut file: [$file]"
+            Write-Ouput "$tab$(" "*2) |    ~ Resulting Shorcut file: [$file]"
 
             try{
                 if ( (Test-Path $file -PathType Leaf) -and ($replace -ne $true) )
                 {
-                    Write-Host "$tab$(" "*2) |    ! Skipping existing Shorcut [$file]. Use `"replace`": true"; 
+                    Write-Ouput "$tab$(" "*2) |    ! Skipping existing Shorcut [$file]. Use `"replace`": true"; 
                 } else {
                     if ( Test-Path $file -PathType Leaf) {
-                        Write-Host "$tab$(" "*2) |    - Remove existing Shorcut"
+                        Write-Ouput "$tab$(" "*2) |    - Remove existing Shorcut"
                         Remove-Item $file -Force
                     }
                     try{
@@ -71,11 +71,11 @@ function Add-Shortcut {
                         $object.IconLocation = "$target, 0";
 
                         $object.Save()
-                        Write-Host "$tab$(" "*2) |    + Shorcut created: $file "
+                        Write-Ouput "$tab$(" "*2) |    + Shorcut created: $file "
                     }catch{
                         Write-Error $_.Exception;    
                     }
-                    #Write-Host "$tab |    + Shorcut created: $file"
+                    #Write-Ouput "$tab |    + Shorcut created: $file"
                 }                    
             }catch{
                 Write-Error $_;    
@@ -88,7 +88,7 @@ function Add-Shortcut {
     }
     End{
         [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-        Write-Host "$tab$(" "*0) * Shorcuts finished: $index $msg"; #⬤
+        Write-Ouput "$tab$(" "*0) * Shorcuts finished: $index $msg"; #⬤
     }
 }
     
@@ -106,7 +106,7 @@ function Add-Shortcut {
             , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultFavoritePath
         )
         Begin {
-            Write-Host "$tab  ◯ Favorites"
+            Write-Ouput "$tab  ◯ Favorites"
             $index = 0; $errorcount = 0;
             if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultFavoritePath; }
             #$defaultpath = [System.Environment]::ExpandEnvironmentVariables($defaultpath);
@@ -115,15 +115,15 @@ function Add-Shortcut {
             Try{
                 $script:defaultdownloadfolder;
                 $env:test
-                Write-Host "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+                Write-Ouput "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
                 $index++;
                 [String]$name = $favorite.name.trim();
-                Write-Host "$tab  |  ↳ Favorite $index [$name]"
+                Write-Ouput "$tab  |  ↳ Favorite $index [$name]"
                 if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Favorite [$index]: name is invalid [$name]"; return; }
                 if ( -not ($name.EndsWith('.url'))){ $name += '.url'}
                 [String]$path = $favorite.path.trim();
                 if ([string]::IsNullOrWhiteSpace($path)) { 
-                    Write-Host "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
+                    Write-Ouput "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
                     $path = $defaultpath; 
                 }
                 $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
@@ -135,7 +135,7 @@ function Add-Shortcut {
                     $file = Join-Path -Path $fullpath -ChildPath $name
                     if ( Test-Path $file -PathType Leaf)
                     {
-                        Write-Host "$tab  |    - Remove existing Favorite"
+                        Write-Ouput "$tab  |    - Remove existing Favorite"
                         Remove-Item $file
                     }
                     try{
@@ -143,7 +143,7 @@ function Add-Shortcut {
                         $object = $shell.CreateShortcut($file)
                         $object.TargetPath = $url;
                         $object.Save()
-                        Write-Host "$tab  |    + Favorite created: $file "
+                        Write-Ouput "$tab  |    + Favorite created: $file "
                     }catch{
                         Write-Error $_.Exception;    
                     }
@@ -155,7 +155,7 @@ function Add-Shortcut {
         }
         End{
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Host "$tab  ⬤ Favorites created: $index $msg";
+            Write-Ouput "$tab  ⬤ Favorites created: $index $msg";
         }
     }
     #>

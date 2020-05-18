@@ -26,7 +26,7 @@ $path = "C:\ProgramData\UiPath\Academy"
 $scripts = "C:\ProgramData\UiPath\Academy\Scripts"
 #$repository = "https://github.com/jvavasseur/VmReconfig.git"
 
-Write-Host "Import Modules"
+Write-Ouput "Import Modules"
 $env:PSModulePath = ($env:PSModulePath.Split(";") + "$PSScriptRoot\Modules" | Select-Object -Unique ) -join ';'
 Import-Module posh-git -Force
 Import-Module VmReconfig -Force -Verbose;
@@ -34,7 +34,7 @@ Import-Module VmReconfig -Force -Verbose;
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 if ( $pullorigin ) {
-    Write-Host "Git Pull Origin"
+    Write-Ouput "Git Pull Origin"
     & 'C:\Program Files\Git\bin\git.exe' -C $scripts pull origin
 }
 
@@ -65,22 +65,22 @@ $files | Foreach-Object {
     $fileid++
     $filename = $PSItem
 
-    Write-Host $("-" * 100)
-    Write-Host "$($tab)Configuration File $fileid"
-    Write-Host "$tab  File: $filename"
+    Write-Ouput $("-" * 100)
+    Write-Ouput "$($tab)Configuration File $fileid"
+    Write-Ouput "$tab  File: $filename"
 
     $json = $null
     if ( Test-Path -Path $filename -PathType Leaf ) {
-        Write-Host "$tab  Read File"
+        Write-Ouput "$tab  Read File"
         $json = Get-Content $filename | ConvertFrom-Json
     } else { write-error "file not found: $filename"; return } 
 
-#    write-host $("x" * 100)
+#    Write-Ouput $("x" * 100)
     if ( ( $null = $json ) ) {
         $params = $json.Downloads
         if ( -not ( $null -eq $params )) { $params | Get-FileFromUrl }
         $params = $json.Execute 
         if ( -not ( $null -eq $params )) { $params | Start-ConfigCommand }
-    } else { write-host "XXXXXXXXXXXXXXXXXXXXXXXXXX" }
+    } else { Write-Ouput "XXXXXXXXXXXXXXXXXXXXXXXXXX" }
 }
 
