@@ -32,7 +32,7 @@ Get-Date -Format "dddd MM/dd/yyyy HH:mm:ss"
 #----------------------------------------------------------------------------------------------------
 if ( $pullorigin ) {
     Write-Host "Git Pull Origin"
-    & 'C:\Program Files\Git\bin\git.exe' -C $scripts pull origin
+    & 'C:\Program Files\Git\bin\git.exe' -C $PSScriptRoot pull origin
 }
 
 #----------------------------------------------------------------------------------------------------
