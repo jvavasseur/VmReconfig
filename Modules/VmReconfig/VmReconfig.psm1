@@ -1,3 +1,59 @@
+function Get-ShortString {
+    <#
+        Test if Object contains properties
+        .SYPNOSIS
+        ...
+    #>
+    [CmdletBinding()]
+    Param (
+        # Parameter help description
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [string] $string
+        , [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [int] $length = 50       
+    )
+    Begin {}
+    Process{
+        $shorttext = $string.Replace("`r", " ").Replace("`n", " ").Replace("    ", " ").Replace("  ", " ").SubString(0,[math]::min($length, $string.length) )
+        $shorttext
+    }
+    End{}
+}
+function Test-ObjectContainsProperties {
+    <#
+        Test if Object contains properties
+        .SYPNOSIS
+        ...
+    #>
+    [CmdletBinding()]
+    Param (
+        # Parameter help description
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [psobject] $object
+        , [Parameter(Mandatory=$false)] [String[]] $properties
+        , [Parameter(Mandatory=$false)] [string] $any = $false
+    )
+    Begin {
+        $count = 0;
+    }
+    Process{
+#Write-Host "name = $($object.name)"
+##write-host $(Get-Member -InputObject $object -MemberType Properties)
+        ForEach($property in $properties)
+        {
+#write-host "property = $property"
+            if (Get-Member -InputObject $object  -Name $property -MemberType Properties) 
+            {
+#write-host "property = $property OK"
+                $count++;
+                if ($any -eq $true) { return $true }
+            }
+            else {
+                if ( $any -ne $true){ return $false; }
+            }
+        }
+        if ( $count -eq $properties.count) {return $true } else { return $false }
+    }
+    End{}
+}
+
 function New-FolderPath {
     <#
         Create folder hierarchy
@@ -57,6 +113,7 @@ function Initialize-Directories
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DesktopDirectory
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $FavoritesDirectory
         , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $shortcutsDirectory
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $LGpo
         , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
         )
     Begin{}
@@ -98,6 +155,16 @@ function Initialize-Directories
             Init-CustomVariableDirectory -Name "Desktop" -Value $DesktopDirectory -tab $tab
             Init-CustomVariableDirectory -Name "Favorites" -Value $FavoritesDirectory -tab $tab
             Init-CustomVariableDirectory -Name "Shortcuts" -Value $ShortcutsDirectory -tab $tab
+
+            If ([string]::IsNullOrWhiteSpace($lgpo) ) { 
+                $path = [io.path]::Combine( (Get-DownloadsDirectory), "LGPO", "lgpo.exe")
+
+            }
+            $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
+            if ( -Not ( Test-Path $fullpath -PathType Leaf))
+            { Throw "lgpo.exe not found: $fullpath" }
+            Unblock-File -path $fullpath
+            Set-LGpo -Path $fullpath
 
             #endregion Custom Directories
         }
@@ -146,6 +213,37 @@ function Start-VmConfig
     End{}
 }
 
+function End-VmConfig
+{
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $UpdateLocalePolicies = $true
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $UpdateDesktop = $true
+        , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string] $tab = ""
+        )
+    Begin{
+        Write-Host "$($tab)Start Post processing "
+        $count = 0
+    }
+    Process{
+        if ($UpdateLocalePolicies)
+        {
+            Write-Host "$($tab) ~ Reload Locale Policies"
+            #Invoke-GPUpdate -Force
+            Start-Process "gpupdate" -ArgumentList "/force" -Wait
+        } else { Write-Host "$($tab) ! Locale Policies not reloaded (use [UpdateLocalePolicies]) " }
+        
+        if ($UpdateDesktop)
+        {
+            Write-Host "$($tab) ~ Reload Desktop"
+            Start-Process "RUNDLL32.EXE" -ArgumentList "USER32.DLL,UpdatePerUserSystemParameters 1, True" -Wait
+        } else { Write-Host "$($tab) ! Desktop not reloaded (use [UpdateDesktop])" }
+    }
+    End {
+        Write-Host "$($tab)End Post processing "
+    }
+}
+            
 function Set-VmConfigFromFile
 {
     [CmdletBinding()]
@@ -161,8 +259,9 @@ function Set-VmConfigFromFile
         try {
             $count++
             Write-Host "$($tab)$(" "*2)File [$count]: $File"
+            Update-VmConfigFromFile -File $File 
 
-            $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
+<#            $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
             if ( Test-Path -Path $fullpath -PathType Leaf ) {
                 Write-Host "$tab$(" "*4)~ Read File"
                 $json = Get-Content $fullpath | ConvertFrom-Json
@@ -189,7 +288,7 @@ function Set-VmConfigFromFile
                     #$params | Start-ConfigCommand 
                 }
                 else { Write-Host "$tab$(" "*4)Execute: nothing to process"}
-            }
+            }#>
         }
         catch {
             throw
@@ -265,6 +364,12 @@ function Update-VmConfigFromJson
                     $params | Add-Shortcut -tab "$tab$(" "*6)" -defaultpath (Get-ShortcutsDirectory)
                 }
                 else { Write-Host "$tab$(" "*4)! Shorcuts: nothing to process"}
+
+                $params = $data.Policies 
+                if ( -not ( $null -eq $params )) { 
+                    $params | Update-Policies -tab "$tab$(" "*6)" -defaultpath (Get-ScriptsDirectory)
+                }
+                else { Write-Host "$tab$(" "*4)Policies: nothing to process"}
 
                 $params = $data.Execute 
                 if ( -not ( $null -eq $params )) { 

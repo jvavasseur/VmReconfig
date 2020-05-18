@@ -33,7 +33,7 @@ function Test-LocalePolicies {
     }
     end{} 
 }
-function Import-LocalePolicies {
+function Update-Policies {
     <#
         Load Locale GPO
         .SYPNOSIS
@@ -42,156 +42,151 @@ function Import-LocalePolicies {
         [CmdletBinding()]
         Param (
             # Parameter help description
-            [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Hashtable] $policies
+            [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Array] $input
             , [Parameter(Mandatory=$false)] [String] $tab = ""
-            , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultPoliciesPath
+            , [Parameter(Mandatory=$false)] [string] $defaultpath = (Get-PoliciesDirectory)
+
+#            [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [Hashtable] $policies
+#            , [Parameter(Mandatory=$false)] [String] $tab = ""
+#            , [Parameter(Mandatory=$false)] [string] $defaultpath = $env:DefaultPoliciesPath
         )
         Begin {
-            Write-Host "$tab  ◯ Locale Policies"
+            Write-Host "$tab$(" "*0) # Policies" #◯
             $index = 0; $errorcount = 0;
-            if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultPoliciesPath; }
+            if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = (Get-PoliciesDirectory); }
+
+#            Write-Host "$tab  ◯ Locale Policies"
+#            $index = 0; $errorcount = 0;
+#            if ([string]::IsNullOrWhiteSpace($defaultpath)) { $defaultpath = $env:DefaultPoliciesPath; }
             $types = @('file', 'link', 'list')
             $containers = @('user', 'machine')
         }
         Process{
             Try{
                 $index++;
-                if ([string]::IsNullOrWhiteSpace($policies)) { $errorcount++; Write-Error "Error with Locale Policies [$index]: format is invalid [$policies]"; return; }
-                if ( -not ($policies.ContainsKey("name") -And $policies.ContainsKey("type"))) {
-                    $errorcount++; Write-Error "Error with Locale Policies parameters [$index]: format is invalid [$($policies | ConvertTo-Json -Compress)] ; expected format = { `"name`": `"file name`", `"type`": `"file/url/link`", `"path`": `"file location`" ...}"; 
+                $policy = $PSItem
+#write-host $policie
+
+                $testobject_params = @{ object = $policy; properties = @("name", "configuration"); any = $false }
+                if ( -not ( Test-ObjectContainsProperties @testobject_params ) ) {
+                    $errorcount++;Write-Error "Error with Policy [$index]: JSON format is invalid $($policy | ConvertTo-Json -Compress)] ; expected format = { `"name`": `"name`", `"configuration`": `"User or computer`" ... }"; 
                     return; 
                 }
 
-                [String]$name = $policies.name.trim();
-                Write-Host "$tab  |  ↳ Policies $index [$name]"
-    
-                if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++; Write-Error "Error with Locale Policies [$index]: name is invalid [$name]"; return; }
+#write-host $("x" * 100)
 
-                $type = $policies.type.trim().ToLower();
-                if ( $types -notcontains $type ) { $errorcount++; Write-Error "Error with Locale Policies [$index]: type is invalid [$type]. Use `"file`", `"link`" or `"rules`""; return; }
+                [String]$name = $policy.name.trim();
+                Write-Host "$tab$(" "*2) | => Policy [$index]: $name"
+                if ([string]::IsNullOrWhiteSpace($name)) { $errorcount++;Write-Error "Error with Policy [$index]: name is invalid [$name]"; return; }
 
-                [String]$path = $policies.path;
-                if ([string]::IsNullOrWhiteSpace($path)) { 
-                    Write-Host "$tab  |    ~ Empty path replaced by Default path: [$defaultpath]"
-                    $path = $defaultpath.Trim(); 
-                } else { $path = $path.Trim(); }
+#write-host $("z" * 100)
+                $testobject_params = @{ object = $policy; properties = @("path", "url", "rules"); any = $true }
+                if ( -not ( Test-ObjectContainsProperties @testobject_params ) ) {
+                    $errorcount++;Write-Error "Error with Policy [$index]: JSON format is invalid $($policy | ConvertTo-Json -Compress)] ; missing 1 or more: [`"path`": `"file path`"], [`"url`": `"file url`"], [`rules`": `"list of rules`"] "; 
+                    return; 
+                }
 
-                $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
-                if ( -Not ( Test-Path $fullpath -PathType Container))
-                    { $errorcount++; Write-Error "Error with Locale Policies [$name]: path is invalid or doesn't exist [$path]"; return;}
+#                if ([string]::IsNullOrWhiteSpace($policies)) { $errorcount++; Write-Error "Error with Locale Policies [$index]: format is invalid [$policies]"; return; }
 
-                switch ($type){
-                    "file"  {
-                        $file = Join-Path -Path $fullpath -ChildPath $name
-                        Write-Host "$tab  |    + File found: $file"
-                    }
-                    "link"  {
-                        if ( -not ($policies.ContainsKey("url") )) 
-                            { $errorcount++; Write-Error "Error with Locale Policies [$name]: url is invalid or missing"; return; }
+#                if ( -not ($policies.ContainsKey("name") -And $policies.ContainsKey("type"))) {
+#                    $errorcount++; Write-Error "Error with Locale Policies parameters [$index]: dfgdfgfg is invalid [$($policies | ConvertTo-Json -Compress)] ; expected format = { `"name`": `"file name`", `"type`": `"file/url/link`", `"path`": `"file location`" ...}"; 
+#                    return; 
+#                }
 
-                        $url = $policies.url.trim();
-                        if ( $null -eq ($url -as [System.URI]).AbsoluteURI )
-                            { $errorcount++; Write-Error "Error with Locale Policies [$name]: url is invalid or missing [$url]"; return; }
-            
-                        $file = Join-Path -Path $fullpath -ChildPath $name
-                        if ( Test-Path $file -PathType Leaf)
-                        {
-                            Write-Host "$tab  |    - Remove existing File"
-                            Remove-Item $file -Force
-                        }
-                        try{
-                            Invoke-WebRequest -Uri $url -OutFile $file
-                            Write-Host "$tab  |    + File downloaded: $file"
-                        }catch{
-                            Write-Error $_;    
-                        }
-                    }
-                    "list"  {
-                        if ( -not ($policies.ContainsKey("rules") )) 
-                            { $errorcount++; Write-Error "Error with Locale Policies [$name]: rules are invalid or missing"; return; }
-                        $rules = $policies.rules;
-                        if ([string]::IsNullOrWhiteSpace($rules)) { $errorcount++; Write-Error "Error with Locale Policies [$index]: name is invalid [$name]"; return; }
+                [String]$configuration = $policy.configuration;
+                #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                #XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+                
+                [String]$file = $policy.path;
+
+                if ([string]::IsNullOrWhiteSpace($file)) {
+                    Write-Host "$tab$(" "*8) | [path] parameter not found"
+                } else {
+                    Write-Host "$tab$(" "*2) |    Process [path] = $file"
+                    $fullpath = [System.Environment]::ExpandEnvironmentVariables($file)
+                    if ( Test-Path -Path $fullpath -PathType Leaf ) 
+                    {
+                        $tempfile = "$([guid]::NewGuid()).txt"
+                        $temppath = [io.path]::Combine( (Get-TempDirectory), $tempfile)
+                        Write-Host "$tab$(" "*2) |     ~ Copy to temp file: $temppath"
+                        "; $("-"*100)" | Set-content -Path $temppath
+                        "; CUSTOM POLICY:x $name" | Add-Content -Path $temppath -Encoding ascii
+                        "; Creation time: $((get-date).ToString())" | Add-Content -Path $temppath -Encoding ascii
+                        "; Configuration: $configuration" | Add-Content -Path $temppath -Encoding ascii
+                        "; path: $file" | Add-Content -Path $temppath -Encoding ascii
+                        "; $("-"*100)" | Add-content -Path $temppath -Encoding ascii
+                        $content = Get-Content -Path $fullpath 
+                        $content | Add-Content -Path $temppath -Encoding ascii
+
+                        Import-Policies -File $temppath -Configuration $configuration -tab $tab
+                    } else { throw "Policy file not found: $file" }        
+                }
+
+                [String]$url = $policy.url;
+                if ([string]::IsNullOrWhiteSpace($url)) {
+                    Write-Host "$tab$(" "*2) |    [url] parameter not found"
+                } else {
+                    Write-Host "$tab$(" "*2) |    Process [url] = $url"
+                    $tempfile = "$([guid]::NewGuid()).txt"
+                    $temppath = [io.path]::Combine( (Get-TempDirectory), $tempfile)
+
+                    Write-Host "$tab$(" "*2) |     + Download to temp file: $temppath"
         
-                        $file = Join-Path -Path $fullpath -ChildPath $name
-                        if ( Test-Path $file -PathType Leaf)
-                        {
-                            Write-Host "$tab  |    - Remove existing File"
-                            Remove-Item $file -Force
-                        }
-                        try{
-                            $row = 0;
-                            "; ----------------------------------------------------------------------" | Out-File -FilePath $file -Encoding ascii
-                            Add-Content -Path $file -Encoding ascii -Value $(Get-Date -Format "; dddd MM/dd/yyyy HH:mm:ss")
-                            Add-Content -Path $file -Encoding ascii -Value "; POLICY"
-    
-                            ForEach($rule in $rules) {
-                                $row++;
-                                if ( -not ($rule.ContainsKey("container") -And $rule.ContainsKey("location") -And $rule.ContainsKey("key") -And $rule.ContainsKey("value")))
-                                    { $errorcount++; Write-Error "Error with rule [$row]: rule is invalid or parameter(s) are missing (container, location, key and value) [$($rule | ConvertTo-Json -Compress)]"; continue; }
+                    [Net.ServicePointManager]::SecurityProtocol = "tls12, tls11, tls"
+                    $startdate = (get-date)
+                    $progress = $ProgressPreference
+                    $ProgressPreference = "SilentlyContinue"
+                    Invoke-WebRequest -Uri $url -OutFile $temppath
+                    $ProgressPreference = $progress
+                    Write-Host "$tab$(" "*2) |     ~ File downloaded [$(New-TimeSpan -Start $startdate -End (get-date))]"        
 
-                                $container = $rule.container.Trim();
-                                if ([string]::IsNullOrWhiteSpace($rules)) { $errorcount++; Write-Error "Error with Locale Policies [$row]: container is invalid [$container]"; return; }
-                                if ( $containers -notcontains $container ) { $errorcount++; Write-Error "Error with Locale Policies [$row]: container is invalid [$container]"; return; }
-                                $location = $rule.location.Trim();
-                                if ([string]::IsNullOrWhiteSpace($location)) { $errorcount++; Write-Error "Error with Locale Policies [$row]: container is invalid [$location]"; return; }
-                                $key = $rule.key.Trim();
-                                if ([string]::IsNullOrWhiteSpace($key)) { $errorcount++; Write-Error "Error with Locale Policies [$row]: container is invalid [$key]"; return; }
-                                $value = $rule.value.Trim();
-                                if ([string]::IsNullOrWhiteSpace($value)) { $errorcount++; Write-Error "Error with Locale Policies [$row]: container is invalid [$value]"; return; }
+                    $content = Get-Content -Path $temppath 
+                    "; $("-"*100)" | Set-content -Path $temppath -Encoding ascii
+                    "; CUSTOM POLICY:x $name" | Add-Content -Path $temppath -Encoding ascii
+                    "; Creation time: $((get-date).ToString())" | Add-Content -Path $temppath -Encoding ascii
+                    "; Configuration: $configuration" | Add-Content -Path $temppath -Encoding ascii
+                    "; url: $url" | Add-Content -Path $temppath -Encoding ascii
+                    "; $("-"*100)" | Add-content -Path $temppath -Encoding ascii
 
-                                Add-Content -Path $file -Encoding ascii -Value ""
-                                Add-Content -Path $file -Encoding ascii -Value $container
-                                Add-Content -Path $file -Encoding ascii -Value $location
-                                Add-Content -Path $file -Encoding ascii -Value $key
-                                Add-Content -Path $file -Encoding ascii -Value $value
-                                "$key = $value"
-
-                            }
-
-                            Write-Host "$tab  |    + Rules found: $row"
-                            Write-Host "$tab  |    + File created: $file"
-                        }catch{
-                            Write-Error $_;    
-                        }
-                    }
+                    $content | Add-Content -Path $temppath -Encoding ascii
+                    Import-Policies -File $temppath -Configuration $configuration -tab $tab
                 }
-                if ( Test-Path $file -PathType Leaf)
-                {
+                
+                $rules = $policy.rules;
+                if ( $rules.count -eq 0) {
+                    Write-Host "$tab$(" "*2) |    [rules] parameter not found"
+                } else {
+                    $shorttext = Get-ShortString -string ([system.String]::Join(" ", $rules)) -Length 100
+                    Write-Host "$tab$(" "*2) |    Process [rules] = $shorttext ..."
 
-#                    $file
-                } else { $errorcount++; Write-Error "Error with Locale Policies [$name]: file not found [$file]"; return; }
+                    $tempfile = "$([guid]::NewGuid()).txt"
+                    $temppath = [io.path]::Combine( (Get-TempDirectory), $tempfile)
+                    Write-Host "$tab$(" "*2) |     + Create temp file: $temppath"
 
-                    <#                $url = $download.url.trim()
-                if ( $null -eq ($url -as [System.URI]).AbsoluteURI )
-                    { $errorcount++; Write-Error "Error with Download [$name]: url is invalid [$url]"; return; }
-                $replace = if ( $download.replace -eq $false) { $false } else { $true }
-                $extract = if ( $download.extract -eq $true) { $true } else { $false }
-    
-                $file = Join-Path -Path $fullpath -ChildPath $name
-                if ( Test-Path $file -PathType Leaf)
-                {
-                    if ( $replace -eq $true) {
-                        Write-Host "$tab  |    - Remove existing File"
-                        Remove-Item $file -Force
-                    } else { Write-Host "$tab  |    ! Replace set to [false] or not set, existing file won't be replace [$file]. Use `"replace`": true"; return; }
-                }
-                try{
-                    Invoke-WebRequest -Uri $url -OutFile $file
-                    Write-Host "$tab  |    + File downloaded: $file"
-                    if ( $extract) {
-                        $destination = Join-Path -Path $fullpath -ChildPath $(Split-Path $file -LeafBase)
-                        if ( Test-Path $destination -PathType Container)
-                        {
-                            Write-Host "$tab  |    - Remove archive folder: $destination"
-                            Remove-Item -Path $destination -Force -Recurse
+                    "; $("-"*100)" | Set-content -Path $temppath -Encoding ascii
+                    "; CUSTOM POLICY:x $name" | Add-Content -Path $temppath -Encoding ascii
+                    "; Creation time: $((get-date).ToString())" | Add-Content -Path $temppath -Encoding ascii
+                    "; Configuration: $configuration" | Add-Content -Path $temppath -Encoding ascii
+                    "; rule: $shorttext" | Add-Content -Path $temppath -Encoding ascii
+                    "; $("-"*100)" | Add-content -Path $temppath -Encoding ascii
+
+                    $rules | ForEach-Object {
+                        $key = $_.key
+                        $values = $_.values
+                        $values | ForEach-Object {
+                            $value = $_.value
+                            $action = $_.action
+
+                            (Get-Culture).TextInfo.ToTitleCase($configuration) | Add-content -Path $temppath -Encoding ascii
+                            $key | Add-content -Path $temppath -Encoding ascii
+                            $value | Add-content -Path $temppath -Encoding ascii
+                            $action | Add-content -Path $temppath -Encoding ascii
+                            "" | Add-content -Path $temppath -Encoding ascii
                         }
-                        Expand-Archive -Path $file -DestinationPath $destination -Force
-                        Write-Host "$tab  |    + File extracted to: $destination"
-                    }
-                }catch{
-                    Write-Error $_;    
+                    } 
+                    Import-Policies -File $temppath -Configuration $configuration -tab $tab
                 }
-#>
+
             }catch{
                 $errorcount++;
                 Throw $_;
@@ -199,7 +194,41 @@ function Import-LocalePolicies {
         }
         End{
             [string] $msg = if($errorcount -gt 0){"[errorcount found: $errorcount]"} else{""}
-            Write-Host "$tab  ⬤ Locale Policies finished: $index $msg";
+            Write-Host "$tab$(" "*0) * Locale Policies finished: $index $msg"; #⬤
         }
     }
     
+function Import-Policies {
+    <#
+        Load Locale GPO
+        .SYPNOSIS
+        ...
+    #>
+    [CmdletBinding()]
+    Param (
+        # Parameter help description
+        [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [String] $File
+        , [Parameter(Mandatory=$true, ValueFromPipeline = $true)] [String] $Configuration
+        , [Parameter(Mandatory=$false)] [String] $tab = ""
+    )
+    Begin{}
+    Process
+    {
+        $policypath = [io.path]::ChangeExtension($File, "pol")
+        Write-Host "$tab$(" "*2) |     + Create Policy file: $policypath"
+        #Write-Host "$(Get-LGpo) /r $File /w $policypath"
+        Start-Process "$(Get-LGpo)" -ArgumentList "/r $File /w $policypath" -Wait -WindowStyle hidden
+ 
+        Write-Host "$tab$(" "*2) |     + Import Policy file..."      
+        Switch ($Configuration)
+        {
+            "User" { $args = "/u $policypath"; break; }
+            "Computer" { $args = "/m $policypath"; break; }
+            default { Throw "Error importing Policy file. Invalid Configuration ($configuration): User [User] or [Computer]"}
+        }
+#        Write-Host "$(Get-LGpo) $args"
+        Start-Process "$(Get-LGpo)" -ArgumentList $args -Wait -WindowStyle hidden
+        Write-Host "$tab$(" "*2) |     + Policy file imported: $policypath"
+    }
+    End{}
+}

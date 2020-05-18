@@ -3,12 +3,15 @@ param(
     , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Urls
     , [Parameter(Mandatory=$false, ValueFromPipeline = $false)] [string[]] $Json
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $pullorigin = $false
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $UpdateLocalePolicies = $true
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [switch] $UpdateDesktop = $true
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $WorkingDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $LogsDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DownloadsDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $PoliciesDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $TempDirectory
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $ScriptsDirectory
+    , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $LGpo
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $DesktopDirectory = "%ALLUSERSPROFILE%\Desktop"
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $FavoritesDirectory = "%ALLUSERSPROFILE%\Desktop"
     , [Parameter(Mandatory=$false, ValueFromPipeline = $true)] [string] $shortcutsDirectory = "%ALLUSERSPROFILE%\Desktop"
@@ -64,6 +67,15 @@ Initialize-Directories @directories
 # Start VM Config
 #----------------------------------------------------------------------------------------------------
 Start-VmConfig -Files $Files -Urls $Urls -Json $json
+
+$params = @{
+    UpdateLocalePolicies = $UpdateLocalePolicies 
+    UpdateDesktop = $UpdateDesktop 
+    tab = $tab
+}
+End-VmConfig @params
+
+
 <#
 $files.count
 $urls.count

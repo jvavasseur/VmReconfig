@@ -292,7 +292,7 @@ function Set-FavoritesDirectory {
 
 #----------------------------------------------------------------------------------------------------
 # Shortcuts directory
-#----------------------------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------0
 function Get-ShortcutsDirectory {
     [CmdletBinding()]
     Param ( [Parameter(Mandatory=$false)] [String]$Scope = "Script" )
@@ -305,6 +305,36 @@ function Get-ShortcutsDirectory {
     }
 }
 function Set-ShortcutsDirectory {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true)] [String]$Path
+        , [Parameter(Mandatory=$false)] [String]$Scope = "Script"
+        , [Parameter(Mandatory=$false)] [String]$Option = ""
+    )
+    process {
+        $params = @{
+            Name = $PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1]
+            Value = $path; Scope = $Scope; Passthru = $true#; Option = 'constant'; 
+        }            
+        (Set-Variable @params).value
+    }
+}
+
+#----------------------------------------------------------------------------------------------------
+# Lgpo path
+#----------------------------------------------------------------------------------------------------0
+function Get-Lgpo {
+    [CmdletBinding()]
+    Param ( [Parameter(Mandatory=$false)] [String]$Scope = "Script" )
+    Process{
+        try {
+            Get-Variable -Name $PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1] -Scope $Scope -ValueOnly -ErrorAction Stop
+        } catch [System.Management.Automation.ItemNotFoundException] {
+            Throw "Variable has not been properly set: $($PSCmdLet.MyInvocation.MyCommand.Name.Split('-', 2)[1])"
+        } catch{ Throw }
+    }
+}
+function Set-Lgpo {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory=$true)] [String]$Path
