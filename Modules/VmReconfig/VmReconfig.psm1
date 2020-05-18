@@ -132,7 +132,7 @@ function Initialize-Directories
             If (([string]::IsNullOrWhiteSpace($path))) { 
                 $path = (Get-Item $MyInvocation.ScriptName).Directory.Parent.Fullname
             }
-            Write-host "$($tab)Set Working Directory: [$path]"
+            Write-Output "$($tab)Set Working Directory: [$path]"
             $fullpath = [System.Environment]::ExpandEnvironmentVariables($path)
             If ( -not(Test-Path -Path $fullpath -isValid ) ) { Throw "Working Directory is invalid: $path" }
             #if ( [string]::IsNullOrWhiteSpace( [IO.Path]::GetPathRoot($fullpath) )) {
