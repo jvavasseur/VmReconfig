@@ -80,7 +80,6 @@ function Add-Shortcut {
             }catch{
                 Write-Error $_;    
             }
-
     } catch {
             $errorcount++;
             Throw $_;
