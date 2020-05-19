@@ -64,7 +64,7 @@ function Add-Shortcut {
                     try{
                         $shell = New-Object -ComObject ("WScript.Shell")
                         $object = $shell.CreateShortcut($file)
-                        $object.TargetPath = $url;
+                        $object.TargetPath = $target;
                         $object.Arguments = "";
                         $object.WorkingDirectory = "";
                         $object.WindowStyle = 1;
